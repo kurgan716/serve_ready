@@ -1,0 +1,17 @@
+# Основные зависимости
+Django==4.2.0
+Pillow==9.5.0
+
+# PostgreSQL
+psycopg2-binary==2.9.6
+
+# Переменные окружения
+python-dotenv==1.0.0
+
+# Опционально для production
+gunicorn==20.1.0
+whitenoise==6.4.0
+django-cors-headers==4.0.0
+django-redis==5.2.0
+redis==4.5.4
+celery==5.2.7

@@ -1,0 +1,163 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Темы ОБЗР{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Заголовок -->
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="color: white; font-size: 2.5rem; margin-bottom: 1rem;">Темы Основ Безопасности Жизнедеятельности</h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 800px; margin: 0 auto;">
+            Изучайте материалы по военной подготовке, гражданской обороне и основам безопасности
+        </p>
+    </div>
+
+    <!-- Список тем -->
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem;">
+        {% if themes %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
+                {% for theme in themes %}
+                    <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s; border: 1px solid #e2e8f0;">
+                        {% if theme.image %}
+                            <div style="height: 200px; overflow: hidden;">
+                                <img src="{{ theme.image.url }}" 
+                                     alt="{{ theme.title }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        {% else %}
+                            <div style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                🎖️
+                            </div>
+                        {% endif %}
+                        
+                        <div style="padding: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <h3 style="color: #2d3748; font-size: 1.25rem; margin: 0; flex-grow: 1;">
+                                    {{ theme.title }}
+                                </h3>
+                                <span style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
+                                    {{ theme.lessons.count }} уроков
+                                </span>
+                            </div>
+                            
+                            <p style="color: #718096; margin-bottom: 1.5rem; line-height: 1.6;">
+                                {{ theme.description|truncatechars:150 }}
+                            </p>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #a0aec0; font-size: 0.875rem;">
+                                    Создано: {{ theme.created_at|date:"d.m.Y" }}
+                                </span>
+                                
+                                <a href="{% url 'theme_detail' theme.pk %}" 
+                                   style="display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; transition: background 0.3s;">
+                                    Изучить
+                                    <span style="margin-left: 0.5rem;">→</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Пагинация (заготовка для будущего) -->
+            {% if themes.paginator.num_pages > 1 %}
+                <div style="margin-top: 3rem; display: flex; justify-content: center;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% for page in themes.paginator.page_range %}
+                            <a href="?page={{ page }}" 
+                               style="padding: 0.5rem 1rem; background: {% if page == themes.number %}#667eea{% else %}#e2e8f0{% endif %}; color: {% if page == themes.number %}white{% else %}#4a5568{% endif %}; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                                {{ page }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+                <h3 style="color: #2d3748; margin-bottom: 0.5rem;">Темы пока не добавлены</h3>
+                <p style="color: #718096;">Администратор скоро добавит учебные материалы</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Призыв к действию -->
+    {% if user.is_staff %}
+        <div style="margin-top: 2rem; text-align: center;">
+            <a href="/admin/core/theme/add/" 
+               style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #48bb78; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 1rem;">
+                <span style="margin-right: 0.5rem;">+</span>
+                Добавить новую тему
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Информационный блок -->
+    <div style="margin-top: 3rem; background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem;">
+        <h2 style="color: #2d3748; text-align: center; margin-bottom: 1.5rem;">Как изучать темы?</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+            <div style="text-align: center;">
+                <div style="background: #ebf8ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    1️⃣
+                </div>
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Выберите тему</h4>
+                <p style="color: #718096; font-size: 0.9rem;">Изучите описание и выберите интересующую вас тему</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="background: #f0fff4; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    2️⃣
+                </div>
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Изучайте уроки</h4>
+                <p style="color: #718096; font-size: 0.9rem;">Последовательно проходите все уроки в теме</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="background: #faf5ff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    3️⃣
+                </div>
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Выполняйте задания</h4>
+                <p style="color: #718096; font-size: 0.9rem;">Закрепляйте знания с помощью практических заданий</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="background: #fff5f5; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    4️⃣
+                </div>
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Отслеживайте прогресс</h4>
+                <p style="color: #718096; font-size: 0.9rem;">Следите за своими успехами в личном кабинете</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+    
+    a:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<script>
+    // Добавляем hover-эффект для карточек тем
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeCards = document.querySelectorAll('.theme-card');
+        themeCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 15px rgba(0,0,0,0.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            });
+        });
+    });
+</script>
+{% endblock %}

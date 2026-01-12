@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto; padding: 2rem;">
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="color: #2d3748; text-align: center; margin-bottom: 2rem;">Вход в систему</h2>
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_username" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                    Имя пользователя
+                </label>
+                <input type="text" 
+                       name="username" 
+                       id="id_username" 
+                       required 
+                       style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                       placeholder="Введите имя пользователя">
+                {% if form.username.errors %}
+                    <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_password" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                    Пароль
+                </label>
+                <input type="password" 
+                       name="password" 
+                       id="id_password" 
+                       required 
+                       style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                       placeholder="Введите пароль">
+                {% if form.password.errors %}
+                    <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.password.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div style="background: #fed7d7; color: #742a2a; padding: 1rem; border-radius: 5px; margin-bottom: 1.5rem;">
+                    {% for error in form.non_field_errors %}
+                        <p style="margin: 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <button type="submit" 
+                    style="width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s;">
+                Войти
+            </button>
+            
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+        
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <p style="color: #718096; margin-bottom: 0.5rem;">Нет аккаунта?</p>
+            <a href="{% url 'register' %}" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                Зарегистрироваться
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

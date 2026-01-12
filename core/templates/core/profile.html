@@ -1,0 +1,548 @@
+{% extends 'core/base.html' %}
+{% block title %}Личный кабинет - {{ user.get_full_name|default:user.username }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+    
+    <!-- Заголовок профиля -->
+    <div class="profile-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 2rem; margin-bottom: 2rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -80px; left: -80px; width: 300px; height: 300px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+        
+        <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+            <!-- Аватар -->
+            <div style="flex-shrink: 0;">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" 
+                         alt="Аватар" 
+                         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                {% else %}
+                    <div style="width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: white; border: 5px solid white; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper|default:"" }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Информация пользователя -->
+            <div style="flex-grow: 1;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: bold;">
+                    {{ user.get_full_name|default:user.username }}
+                </h1>
+                <p style="opacity: 0.9; margin-bottom: 1rem; font-size: 1.1rem;">
+                    Участник платформы "СлужитьГотов!!"
+                </p>
+                
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Логин</div>
+                        <div style="font-weight: 500;">{{ user.username }}</div>
+                    </div>
+                    
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Email</div>
+                        <div style="font-weight: 500;">{{ user.email|default:"Не указан" }}</div>
+                    </div>
+                    
+                    {% if profile.birth_date %}
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Дата рождения</div>
+                        <div style="font-weight: 500;">{{ profile.birth_date|date:"d.m.Y" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.phone %}
+                    <div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Телефон</div>
+                        <div style="font-weight: 500;">{{ profile.phone }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент в две колонки -->
+    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+        <!-- Левая колонка - форма редактирования -->
+        <div>
+            <!-- Форма редактирования профиля -->
+            <div class="profile-edit-form" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                <h2 style="color: #2d3748; margin-bottom: 1.5rem; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>✏️</span> Редактировать профиль
+                </h2>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Обработка ошибок формы -->
+                    {% if form.errors %}
+                    <div style="background: #fed7d7; color: #742a2a; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <strong>Ошибка:</strong> Пожалуйста, исправьте ошибки в форме.
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <!-- Имя -->
+                        <div>
+                            <label style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                                Имя
+                            </label>
+                            <input type="text" 
+                                   name="first_name" 
+                                   value="{{ user.first_name|default:'' }}"
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;"
+                                   placeholder="Введите ваше имя">
+                        </div>
+                        
+                        <!-- Фамилия -->
+                        <div>
+                            <label style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                                Фамилия
+                            </label>
+                            <input type="text" 
+                                   name="last_name" 
+                                   value="{{ user.last_name|default:'' }}"
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;"
+                                   placeholder="Введите вашу фамилию">
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <!-- Дата рождения -->
+                        <div>
+                            <label for="id_birth_date" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                                Дата рождения
+                            </label>
+                            <input type="date" 
+                                   name="birth_date" 
+                                   id="id_birth_date"
+                                   value="{{ profile.birth_date|date:'Y-m-d'|default:'' }}"
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;">
+                        </div>
+                        
+                        <!-- Телефон -->
+                        <div>
+                            <label for="id_phone" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                                Телефон
+                            </label>
+                            <input type="tel" 
+                                   name="phone" 
+                                   id="id_phone"
+                                   value="{{ profile.phone|default:'' }}"
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;"
+                                   placeholder="+7 (XXX) XXX-XX-XX">
+                        </div>
+                    </div>
+                    
+                    <!-- Аватар -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="id_avatar" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                            Аватар профиля
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                            <div style="flex-shrink: 0;">
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" 
+                                         alt="Текущий аватар" 
+                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #a0aec0;">
+                                        👤
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <input type="file" 
+                                       name="avatar" 
+                                       id="id_avatar"
+                                       accept="image/*"
+                                       style="width: 100%; padding: 0.75rem; border: 2px dashed #cbd5e0; border-radius: 8px; background: #f7fafc; cursor: pointer;"
+                                       onchange="previewAvatar(event)">
+                                <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                                    Загрузите изображение (JPG, PNG, до 5MB)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Достижения -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="id_achievements" style="display: block; color: #4a5568; margin-bottom: 0.5rem; font-weight: 500;">
+                            Достижения
+                        </label>
+                        <textarea name="achievements"
+                                  id="id_achievements"
+                                  rows="4"
+                                  style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; resize: vertical;"
+                                  placeholder="Опишите ваши достижения (разделяйте запятыми)">{{ profile.achievements|default:'' }}</textarea>
+                        <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                            Например: "Отличник боевой подготовки, Знаток ОБЖ, Лидер команды"
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки формы -->
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                        <button type="reset" 
+                                style="padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.3s;">
+                            Сбросить
+                        </button>
+                        <button type="submit" 
+                                style="padding: 0.75rem 2rem; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.3s;">
+                            Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Пройденные уроки -->
+            {% if profile.completed_lessons.all %}
+            <div class="completed-lessons" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="color: #2d3748; margin-bottom: 1.5rem; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>✅</span> Пройденные уроки
+                    <span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; margin-left: auto;">
+                        {{ profile.completed_lessons.count }}
+                    </span>
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for lesson in profile.completed_lessons.all|slice:":5" %}
+                    <div style="background: #f0fff4; border-radius: 10px; padding: 1rem; border-left: 4px solid #48bb78;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <h3 style="color: #22543d; font-size: 1rem; margin: 0; font-weight: 500;">
+                                {{ lesson.title }}
+                            </h3>
+                            <span style="color: #38a169; font-size: 0.875rem;">✅</span>
+                        </div>
+                        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            Тема: {{ lesson.theme.title }}
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #a0aec0; font-size: 0.75rem;">
+                                Пройден: {{ lesson.created_at|date:"d.m.Y" }}
+                            </span>
+                            <a href="{% url 'lesson_detail' lesson.id %}" 
+                               style="color: #38a169; text-decoration: none; font-size: 0.875rem; font-weight: 500;">
+                                Повторить →
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if profile.completed_lessons.count > 5 %}
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a href="#" 
+                           style="color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                            Показать все пройденные уроки ({{profile.completed_lessons.count}}) →
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Правая колонка - статистика и достижения -->
+        <div>
+            <!-- Статистика -->
+            <div class="stats-card" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                <h2 style="color: #2d3748; margin-bottom: 1.5rem; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>📊</span> Статистика обучения
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Прогресс-бар -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: #4a5568; font-weight: 500;">Прогресс обучения</span>
+                            <span style="color: #667eea; font-weight: bold;">
+                                {% if total_lessons > 0 %}
+                                    {% widthratio completed_count total_lessons 100 as progress %}
+                                    {{ progress|floatformat:0 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div style="height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(to right, #667eea, #764ba2); width: {% widthratio completed_count total_lessons 100 %}%; border-radius: 5px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                            <span style="color: #a0aec0; font-size: 0.875rem;">
+                                {{ completed_count }}/{{ total_lessons }} уроков
+                            </span>
+                            <span style="color: #a0aec0; font-size: 0.875rem;">
+                                Цель: {{ total_lessons }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Статистические данные -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #667eea; margin-bottom: 0.25rem;">
+                                {{ completed_count }}
+                            </div>
+                            <div style="color: #4a5568; font-size: 0.875rem;">Пройдено уроков</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #ed8936; margin-bottom: 0.25rem;">
+                                {{ tasks_completed|default:"0" }}
+                            </div>
+                            <div style="color: #4a5568; font-size: 0.875rem;">Выполнено заданий</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #48bb78; margin-bottom: 0.25rem;">
+                                {% if profile.achievements %}
+                                    {{ profile.achievements|length|default:"0" }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </div>
+                            <div style="color: #4a5568; font-size: 0.875rem;">Достижения</div>
+                        </div>
+                        
+                        <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #9f7aea; margin-bottom: 0.25rem;">
+                                {{ days_active|default:"1" }}
+                            </div>
+                            <div style="color: #4a5568; font-size: 0.875rem;">Дней в системе</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Уровень -->
+                    <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, #f6e05e 0%, #d69e2e 100%); border-radius: 10px;">
+                        <div style="font-size: 0.875rem; color: #744210; margin-bottom: 0.5rem;">Текущий уровень</div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #744210; margin-bottom: 0.5rem;">
+                            {% if completed_count >= 20 %}Мастер
+                            {% elif completed_count >= 15 %}Опытный
+                            {% elif completed_count >= 10 %}Средний
+                            {% elif completed_count >= 5 %}Начинающий
+                            {% else %}Новичок
+                            {% endif %}
+                        </div>
+                        <div style="color: #744210; opacity: 0.8; font-size: 0.875rem;">
+                            {% if total_lessons > 0 %}
+                                {% with next_level=completed_count|add:"5" %}
+                                До следующего уровня: {{ next_level }} уроков
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Достижения -->
+{% if achievements_list %}
+<div class="achievements-card" style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: #2d3748; margin-bottom: 1.5rem; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🏆</span> Ваши достижения
+    </h2>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+        {% for achievement in achievements_list %}
+        <div style="background: linear-gradient(135deg, #f6e05e 0%, #d69e2e 100%); color: #744210; padding: 0.75rem 1rem; border-radius: 10px; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🏅</span>
+            {{ achievement }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+            
+            <!-- Быстрые действия -->
+            <div class="quick-actions" style="margin-top: 2rem;">
+                <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">⚡ Быстрые действия</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <a href="{% url 'themes' %}" 
+                       style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #ebf8ff; color: #2c5282; text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.3s;">
+                        <span style="font-size: 1.25rem;">📚</span>
+                        Продолжить обучение
+                    </a>
+                    
+                    <a href="{% url 'research' %}" 
+                       style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #f0fff4; color: #22543d; text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.3s;">
+                        <span style="font-size: 1.25rem;">🔍</span>
+                        Читать исследования
+                    </a>
+                    
+                    <a href="#" 
+                       style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #faf5ff; color: #553c9a; text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.3s;">
+                        <span style="font-size: 1.25rem;">📊</span>
+                        Полная статистика
+                    </a>
+                    
+                    <a href="{% url 'logout' %}" 
+                       style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #fff5f5; color: #c53030; text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.3s;">
+                        <span style="font-size: 1.25rem;">🚪</span>
+                        Выйти из системы
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Стили для интерактивных элементов */
+    input, textarea, select {
+        transition: all 0.3s;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button {
+        transition: all 0.3s;
+    }
+    
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    a:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    
+    .quick-actions a:hover {
+        transform: translateX(5px);
+    }
+    
+    .stats-card div[style*="background: #f7fafc"]:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* Анимации */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .profile-header, .profile-edit-form, .stats-card, .achievements-card {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 1024px) {
+        .container > div {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-header > div {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .profile-header > div > div:first-child {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .profile-edit-form form > div {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .stats-card > div > div {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Предпросмотр аватара
+        function previewAvatar(event) {
+            const input = event.target;
+            const reader = new FileReader();
+            
+            reader.onload = function() {
+                const img = document.createElement('img');
+                img.src = reader.result;
+                img.style.width = '80px';
+                img.style.height = '80px';
+                img.style.borderRadius = '50%';
+                img.style.objectFit = 'cover';
+                
+                const avatarContainer = input.parentElement.previousElementSibling;
+                avatarContainer.innerHTML = '';
+                avatarContainer.appendChild(img);
+            }
+            
+            if (input.files && input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Маска для телефона
+        const phoneInput = document.getElementById('id_phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                if (value.startsWith('7') || value.startsWith('8')) {
+                    value = value.substring(1);
+                }
+                
+                if (value.length > 0) {
+                    value = '+7 (' + value.substring(0, 3);
+                    if (value.length > 7) {
+                        value = value.substring(0, 7) + ') ' + value.substring(7, 10);
+                    }
+                    if (value.length > 12) {
+                        value = value.substring(0, 12) + '-' + value.substring(12, 14);
+                    }
+                    if (value.length > 15) {
+                        value = value.substring(0, 15) + '-' + value.substring(15, 17);
+                    }
+                }
+                
+                e.target.value = value;
+            });
+        }
+        
+        // Анимация появления элементов
+        const elements = document.querySelectorAll('.profile-edit-form, .stats-card, .achievements-card');
+        elements.forEach((element, index) => {
+            element.style.animationDelay = `${index * 0.1}s`;
+        });
+        
+        // Подсветка активных полей
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+        
+        // Подтверждение выхода
+        const logoutLink = document.querySelector('a[href*="logout"]');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                if (!confirm('Вы уверены, что хотите выйти?')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
