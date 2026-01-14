@@ -1,7 +1,7 @@
 Быстрый старт (разработка)
 # 1. Клонирование репозитория
-git clone https://github.com/yourusername/serve-ready.git
-cd serve-ready
+git clone https://github.com/kurgan716/serve_ready.git
+cd serve_ready
 
 # 2. Создание виртуального окружения
 python -m venv venv
