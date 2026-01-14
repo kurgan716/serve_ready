@@ -96,8 +96,17 @@ def mark_lesson_completed(request, lesson_id):
     return redirect('lesson_detail', lesson_id=lesson_id)
 
 def research_view(request):
-    articles = ResearchArticle.objects.filter(is_published=True)
-    return render(request, 'core/research.html', {'articles': articles})
+    """Главная страница исследований"""
+    # Здесь можно показывать список исследований
+    return render(request, 'core/research/index.html')
+
+def research_youth_view(request):
+    """Первое исследование о молодёжи"""
+    return render(request, 'core/research/research.html')
+
+def research_guide_view(request):
+    """Второе исследование - руководство по службе"""
+    return render(request, 'core/research/research_guide.html')
 
 def themes_view(request):
     themes = Theme.objects.all().order_by('order')

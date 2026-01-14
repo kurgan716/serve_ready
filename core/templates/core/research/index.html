@@ -1,0 +1,592 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Исследования - СлужитьГотов!!{% endblock %}
+
+{% block extra_css %}
+<style>
+    .research-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        margin-bottom: 3rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section:before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    
+    .hero-section:after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .research-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .research-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .research-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+    }
+    
+    .card-header {
+        padding: 2rem 2rem 1rem;
+    }
+    
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 0 2rem 1.5rem;
+        flex-grow: 1;
+    }
+    
+    .card-footer {
+        padding: 1.5rem 2rem;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .category-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f7fafc;
+        border-radius: 12px;
+    }
+    
+    .category-btn {
+        padding: 0.5rem 1.25rem;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 25px;
+        color: #4a5568;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .category-btn:hover,
+    .category-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    
+    .featured-section {
+        background: linear-gradient(135deg, #fefcbf 0%, #f6e05e 100%);
+        border-radius: 15px;
+        padding: 2.5rem;
+        margin: 3rem 0;
+        border-left: 5px solid #d69e2e;
+    }
+    
+    .authors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .author-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .author-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 2rem 0;
+    }
+    
+    .tag {
+        padding: 0.5rem 1rem;
+        background: #ebf8ff;
+        color: #2c5282;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .tag:hover {
+        background: #4299e1;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .search-box {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 3rem;
+    }
+    
+    .page-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #4a5568;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .page-btn:hover,
+    .page-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 3rem 1.5rem;
+        }
+        
+        .research-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .card-header,
+        .card-body,
+        .card-footer {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="research-container">
+    <!-- Герой-секция -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 style="font-size: 3rem; margin-bottom: 1rem; font-weight: bold;">
+                Исследования и аналитика
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 2rem; line-height: 1.6;">
+                Глубокий анализ военной службы в России. Факты, статистика, правовые аспекты 
+                и практические рекомендации для призывников, контрактников и их семей.
+            </p>
+        </div>
+    </div>
+
+    
+    <div class="research-grid">
+        <!-- Исследование 1 -->
+        <div class="research-card" data-categories="society psychology">
+            <div class="card-header">
+                <div class="card-icon">👥</div>
+                <h3 style="color: #2d3748; margin: 0; font-size: 1.5rem;">
+                    Молодёжь и служба в армии: современный взгляд
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <p style="color: #4a5568; line-height: 1.6; margin-bottom: 1rem;">
+                    Анализ причин нежелания служить в армии и преимуществ военной службы. 
+                    Социологическое исследование среди молодёжи 16-25 лет.
+                </p>
+            </div>
+            
+            <div class="card-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #a0aec0; font-size: 0.875rem;">
+                        Обновлено: 10.01.2026
+                    </span>
+                    <a href="{% url 'research_youth' %}" 
+                       style="padding: 0.5rem 1.25rem; background: #667eea; color: white; 
+                              text-decoration: none; border-radius: 6px; font-weight: 500;">
+                        Читать
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Исследование 2 -->
+        <div class="research-card" data-categories="legal medical draft preparation career">
+            <div class="card-header">
+                <div class="card-icon">📋</div>
+                <span class="card-badge" style="background: #ebf8ff; color: #2c5282;">
+                    Комплексное руководство
+                </span>
+                <h3 style="color: #2d3748; margin: 0; font-size: 1.5rem;">
+                    Руководство по юридическим вопросам военной службе в России
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <p style="color: #4a5568; line-height: 1.6; margin-bottom: 1rem;">
+                    Информация о правах, обязанностях, медицинских аспектах,
+                    призывной кампании и карьерных возможностях.
+                </p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <span style="color: #718096; font-size: 0.875rem;">⚖️ Правовые основы</span>
+                    <span style="color: #718096; font-size: 0.875rem;">🏥 Медицинские аспекты</span>
+                    <span style="color: #718096; font-size: 0.875rem;">🎖️ Карьера</span>
+                </div>
+
+                <div class="card-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #a0aec0; font-size: 0.875rem;">
+                        Обновлено: 10.01.2026
+                    </span>
+                    <a href="{% url 'research_guide' %}"
+                       style="padding: 0.5rem 1.25rem; background: #667eea; color: white;
+                              text-decoration: none; border-radius: 6px; font-weight: 500;">
+                        Читать
+                    </a>
+                </div>
+
+            </div>
+            </div>
+        </div>
+
+        <!-- Исследование 3 (планируемое) -->
+        <div class="research-card" data-categories="medical psychology">
+            <div class="card-header">
+                <div class="card-icon">💪</div>
+                <span class="card-badge" style="background: #fefcbf; color: #744210;">
+                    Подготовка
+                </span>
+                <h3 style="color: #2d3748; margin: 0; font-size: 1.5rem;">
+                    Физическая и психологическая подготовка к службе
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <p style="color: #4a5568; line-height: 1.6; margin-bottom: 1rem;">
+                    Научно обоснованные программы тренировок, рекомендации по питанию, 
+                    методики психологической адаптации к армейским условиям.
+                </p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <span style="color: #718096; font-size: 0.875rem;">🏋️ 12 недельных программ</span>
+                    <span style="color: #718096; font-size: 0.875rem;">🧠 Психологические тесты</span>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #a0aec0; font-size: 0.875rem;">
+                        Скоро будет доступно
+                    </span>
+                    <button style="padding: 0.5rem 1.25rem; background: #e2e8f0; color: #718096; 
+                            border: none; border-radius: 6px; font-weight: 500; cursor: not-allowed;">
+                        Скоро →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Исследование 4 (планируемое) -->
+        <div class="research-card" data-categories="career legal">
+            <div class="card-header">
+                <div class="card-icon">🎓</div>
+                <span class="card-badge" style="background: #e9d8fd; color: #44337a;">
+                    Образование
+                </span>
+                <h3 style="color: #2d3748; margin: 0; font-size: 1.5rem;">
+                    Военное образование: вузы, училища, курсы
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <p style="color: #4a5568; line-height: 1.6; margin-bottom: 1rem;">
+                    Полный гид по военным учебным заведениям России. Требования для поступления, 
+                    программы обучения, перспективы карьерного роста.
+                </p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <span style="color: #718096; font-size: 0.875rem;">🎖️ 45+ учебных заведений</span>
+                    <span style="color: #718096; font-size: 0.875rem;">💰 Стипендии и льготы</span>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #a0aec0; font-size: 0.875rem;">
+                        В разработке
+                    </span>
+                    <button style="padding: 0.5rem 1.25rem; background: #e2e8f0; color: #718096; 
+                            border: none; border-radius: 6px; font-weight: 500; cursor: not-allowed;">
+                        Скоро →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пагинация -->
+    <div class="pagination">
+        <a href="#" class="page-btn active">1</a>
+        <a href="#" class="page-btn">2</a>
+        <a href="#" class="page-btn">3</a>
+        <span style="color: #a0aec0; align-self: center; margin: 0 0.5rem;">...</span>
+        <a href="#" class="page-btn">5</a>
+        <a href="#" class="page-btn">→</a>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Фильтрация по категориям
+        const filterButtons = document.querySelectorAll('.category-btn');
+        const researchCards = document.querySelectorAll('.research-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Снимаем активный класс со всех кнопок
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Добавляем активный класс текущей кнопке
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                
+                // Показываем/скрываем карточки
+                researchCards.forEach(card => {
+                    if (category === 'all') {
+                        card.style.display = 'flex';
+                    } else {
+                        const categories = card.dataset.categories.split(' ');
+                        if (categories.includes(category)) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                    
+                    // Анимация появления
+                    if (card.style.display === 'flex') {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        
+                        setTimeout(() => {
+                            card.style.transition = 'all 0.6s ease';
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, 100);
+                    }
+                });
+            });
+        });
+        
+        // Поиск
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            researchCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('.card-body p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.6s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Анимация появления карточек при загрузке
+        researchCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+        
+        // Подсветка тегов при наведении
+        const tags = document.querySelectorAll('.tag');
+        tags.forEach(tag => {
+            tag.addEventListener('mouseenter', function() {
+                const allTags = document.querySelectorAll('.tag');
+                allTags.forEach(t => {
+                    if (t !== this) {
+                        t.style.opacity = '0.6';
+                        t.style.transform = 'scale(0.95)';
+                    }
+                });
+            });
+            
+            tag.addEventListener('mouseleave', function() {
+                const allTags = document.querySelectorAll('.tag');
+                allTags.forEach(t => {
+                    t.style.opacity = '1';
+                    t.style.transform = 'scale(1)';
+                });
+            });
+        });
+        
+        // Анимация статистики
+        const statNumbers = document.querySelectorAll('.stat-number');
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const stat = entry.target;
+                    const targetNumber = parseInt(stat.textContent);
+                    let currentNumber = 0;
+                    const increment = targetNumber / 50;
+                    const interval = setInterval(() => {
+                        currentNumber += increment;
+                        if (currentNumber >= targetNumber) {
+                            stat.textContent = targetNumber.toLocaleString('ru-RU') + '+';
+                            clearInterval(interval);
+                        } else {
+                            stat.textContent = Math.floor(currentNumber).toLocaleString('ru-RU') + '+';
+                        }
+                    }, 30);
+                    
+                    observer.unobserve(stat);
+                }
+            });
+        }, observerOptions);
+        
+        statNumbers.forEach(stat => observer.observe(stat));
+    });
+</script>
+{% endblock %}

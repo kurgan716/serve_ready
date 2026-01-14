@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import UserProfile, Lesson, Task, Theme
+from django.core.exceptions import ValidationError
+import re
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Email")
@@ -21,13 +23,64 @@ class ProfileUpdateForm(forms.ModelForm):
         model = UserProfile
         fields = ['birth_date', 'phone', 'avatar', 'achievements']
 
+
 class LessonForm(forms.ModelForm):
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 15,
+            'class': 'html-editor',
+            'placeholder': 'Введите содержание урока...\nМожно использовать HTML теги:\n<h2>Заголовок</h2>\n<p>Абзац текста</p>\n<ul><li>Элемент списка</li></ul>\n<img src="URL_изображения" alt="Описание">'
+        }),
+        help_text="Используйте HTML для форматирования. Доступные теги: h1-h6, p, ul, ol, li, strong, em, a, img, table, blockquote"
+    )
+
+    video_url = forms.URLField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'https://www.youtube.com/watch?v=... или https://rutube.ru/video/...'
+        }),
+        help_text="Вставьте ссылку на YouTube или Rutube видео"
+    )
+
     class Meta:
         model = Lesson
         fields = ['title', 'content', 'video_url', 'order']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 10}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
         }
+
+    def clean_content(self):
+        """Валидация HTML контента"""
+        content = self.cleaned_data['content']
+
+        # Список разрешенных HTML тегов
+        allowed_tags = {
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'br', 'hr',
+            'strong', 'b', 'em', 'i', 'u', 's',
+            'ul', 'ol', 'li',
+            'a', 'img',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td',
+            'blockquote', 'code', 'pre',
+            'div', 'span'
+        }
+
+        # Проверка на опасные теги
+        dangerous_patterns = [
+            r'<script.*?>.*?</script>',
+            r'<iframe.*?>.*?</iframe>',
+            r'<object.*?>.*?</object>',
+            r'<embed.*?>',
+            r'on\w+=".*?"',
+            r'javascript:'
+        ]
+
+        for pattern in dangerous_patterns:
+            if re.search(pattern, content, re.IGNORECASE | re.DOTALL):
+                raise ValidationError("Обнаружен небезопасный код в содержании")
+
+        return content
 
 class TaskForm(forms.ModelForm):
     class Meta:

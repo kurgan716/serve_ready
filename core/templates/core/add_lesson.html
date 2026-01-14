@@ -1,171 +1,199 @@
+<!-- core/templates/core/add_lesson.html (дополнение к существующему) -->
 {% extends 'core/base.html' %}
 
 {% block title %}Добавить урок{% endblock %}
 
+{% block extra_css %}
+<style>
+    .html-guide {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .html-tags-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .html-tag {
+        background: rgba(255,255,255,0.1);
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    
+    .html-example {
+        background: white;
+        color: #2d3748;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid #48bb78;
+    }
+    
+    .video-help {
+        background: #fff5f5;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid #f56565;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
     <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <!-- Заголовок -->
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0;">
-            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                +
-            </div>
-            <div>
-                <h1 style="color: #2d3748; margin: 0; font-size: 1.75rem;">Добавить новый урок</h1>
-                <p style="color: #718096; margin: 0.25rem 0 0;">Тема: {{ theme.title }}</p>
+        <!-- ... существующий код заголовка ... -->
+        
+        <!-- Гид по HTML -->
+        <div class="html-guide">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">🎨 Руководство по HTML-форматированию</h3>
+            <p style="opacity: 0.9; margin-bottom: 1rem;">
+                Используйте HTML теги для создания структурированного контента. Все теги проходят проверку безопасности.
+            </p>
+            
+            <div class="html-tags-grid">
+                <div class="html-tag">&lt;h2&gt;Заголовок&lt;/h2&gt;</div>
+                <div class="html-tag">&lt;p&gt;Абзац&lt;/p&gt;</div>
+                <div class="html-tag">&lt;ul&gt;&lt;li&gt;Список&lt;/li&gt;&lt;/ul&gt;</div>
+                <div class="html-tag">&lt;a href="#"&gt;Ссылка&lt;/a&gt;</div>
+                <div class="html-tag">&lt;img src="url"&gt;</div>
+                <div class="html-tag">&lt;strong&gt;Жирный&lt;/strong&gt;</div>
             </div>
         </div>
+        
+        <div class="html-example">
+            <h4>📝 Пример структурированного контента:</h4>
+            <pre style="background: #f7fafc; padding: 1rem; border-radius: 6px; overflow-x: auto;">
+&lt;h2&gt;Основы военной службы&lt;/h2&gt;
 
-        <!-- Форма -->
+&lt;p&gt;Военная служба - это &lt;strong&gt;особый вид государственной службы&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3&gt;Преимущества службы:&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Физическое развитие&lt;/li&gt;
+  &lt;li&gt;Дисциплина&lt;/li&gt;
+  &lt;li&gt;Профессиональные навыки&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Полезные ресурсы:&lt;/h3&gt;
+&lt;p&gt;Подробнее на &lt;a href="https://mil.ru"&gt;официальном сайте&lt;/a&gt;.&lt;/p&gt;
+
+&lt;img src="/media/military_image.jpg" alt="Военная подготовка"&gt;</pre>
+        </div>
+        
+        <!-- Помощь по видео -->
+        <div class="video-help">
+            <h4 style="color: #c53030; margin-top: 0;">🎥 Как добавить видео?</h4>
+            <p style="color: #742a2a;">Поддерживаются платформы:</p>
+            <ul style="color: #742a2a; padding-left: 1.5rem;">
+                <li><strong>YouTube:</strong> https://www.youtube.com/watch?v=ID_видео</li>
+                <li><strong>Rutube:</strong> https://rutube.ru/video/ID_видео/</li>
+            </ul>
+            <p style="color: #742a2a; font-size: 0.9rem; margin-top: 0.5rem;">
+                Видео будет автоматически встроено на страницу урока.
+            </p>
+        </div>
+        
+        <!-- Существующая форма -->
         <form method="post">
             {% csrf_token %}
             
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <!-- Название урока -->
-                <div>
-                    <label for="{{ form.title.id_for_label }}" 
-                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
-                        Название урока
-                        <span style="color: #e53e3e;">*</span>
-                    </label>
-                    <input type="text" 
-                           name="{{ form.title.name }}" 
-                           id="{{ form.title.id_for_label }}" 
-                           value="{{ form.title.value|default:'' }}"
-                           required
-                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
-                           placeholder="Введите название урока">
-                    {% if form.title.errors %}
-                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
-                            {% for error in form.title.errors %}
-                                <p style="margin: 0.25rem 0;">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Содержание урока -->
-                <div>
-                    <label for="{{ form.content.id_for_label }}" 
-                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
-                        Содержание урока
-                        <span style="color: #e53e3e;">*</span>
-                    </label>
-                    <textarea name="{{ form.content.name }}" 
-                              id="{{ form.content.id_for_label }}" 
-                              required
-                              rows="12"
-                              style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;"
-                              placeholder="Введите содержание урока (поддерживается HTML)">{{ form.content.value|default:'' }}</textarea>
-                    {% if form.content.errors %}
-                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
-                            {% for error in form.content.errors %}
-                                <p style="margin: 0.25rem 0;">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
-                        Можно использовать HTML-теги для форматирования текста
+            <!-- ... существующие поля формы ... -->
+            
+            <!-- Поле контента с подсказкой -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_content" style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                    {{ form.content.label }}
+                    <span style="color: #e53e3e;">*</span>
+                </label>
+                {{ form.content }}
+                {% if form.content.errors %}
+                    <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {% for error in form.content.errors %}
+                            <p style="margin: 0.25rem 0;">{{ error }}</p>
+                        {% endfor %}
                     </div>
-                </div>
-
-                <!-- Видео URL -->
-                <div>
-                    <label for="{{ form.video_url.id_for_label }}" 
-                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
-                        Ссылка на видео (YouTube, Vimeo и др.)
-                    </label>
-                    <input type="url" 
-                           name="{{ form.video_url.name }}" 
-                           id="{{ form.video_url.id_for_label }}" 
-                           value="{{ form.video_url.value|default:'' }}"
-                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
-                           placeholder="https://www.youtube.com/watch?v=...">
-                    {% if form.video_url.errors %}
-                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
-                            {% for error in form.video_url.errors %}
-                                <p style="margin: 0.25rem 0;">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
-                        Вставьте ссылку на видео для встраивания в урок
-                    </div>
-                </div>
-
-                <!-- Порядок -->
-                <div>
-                    <label for="{{ form.order.id_for_label }}" 
-                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
-                        Порядок отображения
-                    </label>
-                    <input type="number" 
-                           name="{{ form.order.name }}" 
-                           id="{{ form.order.id_for_label }}" 
-                           value="{{ form.order.value|default:'0' }}"
-                           min="0"
-                           style="width: 100%; max-width: 200px; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;">
-                    {% if form.order.errors %}
-                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
-                            {% for error in form.order.errors %}
-                                <p style="margin: 0.25rem 0;">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
-                        Чем меньше число, тем раньше урок будет отображаться в списке
-                    </div>
+                {% endif %}
+                <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                    {{ form.content.help_text }}
                 </div>
             </div>
-
-            <!-- Кнопки действий -->
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
-                <a href="{% url 'theme_detail' theme.pk %}" 
-                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                    ← Отмена
-                </a>
-                
-                <div style="display: flex; gap: 1rem;">
-                    <button type="submit" 
-                            name="save_and_add_another"
-                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #ed8936; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
-                        Сохранить и добавить еще
-                    </button>
-                    
-                    <button type="submit" 
-                            name="save"
-                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #48bb78; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
-                        Сохранить урок
-                    </button>
-                </div>
-            </div>
+            
+            <!-- ... остальные поля формы ... -->
         </form>
-    </div>
-
-    <!-- Подсказки -->
-    <div style="margin-top: 2rem; background: #ebf8ff; border-radius: 10px; padding: 1.5rem;">
-        <h3 style="color: #2c5282; margin-bottom: 1rem; font-size: 1.1rem;">💡 Советы по созданию уроков</h3>
-        <ul style="color: #2c5282; padding-left: 1.5rem; margin: 0;">
-            <li style="margin-bottom: 0.5rem;">Используйте заголовки для структурирования материала</li>
-            <li style="margin-bottom: 0.5rem;">Добавляйте изображения через HTML-тег &lt;img&gt;</li>
-            <li style="margin-bottom: 0.5rem;">Разделяйте текст на абзацы для лучшей читаемости</li>
-            <li style="margin-bottom: 0.5rem;">Для видео используйте встраиваемые ссылки с YouTube/Vimeo</li>
-            <li>Укажите порядок урока для правильной последовательности изучения</li>
-        </ul>
     </div>
 </div>
 
-<style>
-    input:focus, textarea:focus {
-        outline: none;
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    button:hover, a:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-        transition: all 0.2s;
-    }
-</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentTextarea = document.getElementById('id_content');
+        const videoUrlInput = document.getElementById('id_video_url');
+        
+        // Автоматическое определение типа видео
+        if (videoUrlInput) {
+            videoUrlInput.addEventListener('input', function() {
+                const url = this.value;
+                const preview = document.getElementById('video-preview');
+                
+                if (!preview) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.id = 'video-preview';
+                    previewDiv.style.marginTop = '0.5rem';
+                    this.parentNode.appendChild(previewDiv);
+                }
+                
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    preview.innerHTML = '<span style="color: #48bb78;">✓ YouTube видео будет встроено</span>';
+                } else if (url.includes('rutube.ru')) {
+                    preview.innerHTML = '<span style="color: #48bb78;">✓ Rutube видео будет встроено</span>';
+                } else if (url) {
+                    preview.innerHTML = '<span style="color: #e53e3e;">⚠ Ссылка не распознана. Используйте YouTube или Rutube</span>';
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+        
+        // Быстрая вставка HTML тегов
+        const quickTags = document.querySelectorAll('.quick-tag');
+        quickTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const tagName = this.dataset.tag;
+                const cursorPos = contentTextarea.selectionStart;
+                const textBefore = contentTextarea.value.substring(0, cursorPos);
+                const textAfter = contentTextarea.value.substring(cursorPos);
+                
+                let insertText = '';
+                switch(tagName) {
+                    case 'h2':
+                        insertText = '\n<h2></h2>\n';
+                        break;
+                    case 'p':
+                        insertText = '\n<p></p>\n';
+                        break;
+                    case 'ul':
+                        insertText = '\n<ul>\n  <li></li>\n</ul>\n';
+                        break;
+                    case 'img':
+                        insertText = '\n<img src="" alt="">\n';
+                        break;
+                    case 'a':
+                        insertText = '<a href=""></a>';
+                        break;
+                }
+                
+                contentTextarea.value = textBefore + insertText + textAfter;
+                contentTextarea.focus();
+            });
+        });
+    });
+</script>
 {% endblock %}

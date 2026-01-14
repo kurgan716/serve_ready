@@ -158,6 +158,39 @@
                 justify-content: center;
             }
         }
+        /* В base.css или в style в base.html */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    padding: 0.5rem 0;
+}
+
+.dropdown-content a {
+    color: #4a5568;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    display: block;
+    transition: background 0.3s;
+}
+
+.dropdown-content a:hover {
+    background: #f7fafc;
+    color: #667eea;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -167,15 +200,21 @@
             <a href="{% url 'index' %}" class="logo">Служить<span>Готов</span>!!</a>
             
             <nav>
-                <ul>
-                    <li><a href="{% url 'index' %}">Главная</a></li>
-                    <li><a href="{% url 'themes' %}">Темы ОБЗР</a></li>
-                    <li><a href="{% url 'research' %}">Исследование</a></li>
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'profile' %}">Личный кабинет</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
+    <ul>
+        <li><a href="{% url 'index' %}">Главная</a></li>
+        <li><a href="{% url 'themes' %}">Темы ОБЗР</a></li>
+        <li class="dropdown">
+            <a href="{% url 'research' %}">Исследования</a>
+            <div class="dropdown-content">
+                <a href="{% url 'research_youth' %}">Молодёжь и армия</a>
+                <a href="{% url 'research_guide' %}">Руководство по службе</a>
+            </div>
+        </li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'profile' %}">Личный кабинет</a></li>
+        {% endif %}
+    </ul>
+</nav>
             
             <div class="auth-buttons">
                 {% if user.is_authenticated %}

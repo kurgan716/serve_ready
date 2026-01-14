@@ -1,6 +1,193 @@
+<!-- core/templates/core/lesson_detail.html -->
 {% extends 'core/base.html' %}
 
 {% block title %}{{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lesson-content {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #2d3748;
+    }
+    
+    .lesson-content h1, 
+    .lesson-content h2, 
+    .lesson-content h3, 
+    .lesson-content h4, 
+    .lesson-content h5, 
+    .lesson-content h6 {
+        color: #2c3e50;
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+    }
+    
+    .lesson-content h1 { font-size: 2rem; }
+    .lesson-content h2 { font-size: 1.75rem; }
+    .lesson-content h3 { font-size: 1.5rem; }
+    .lesson-content h4 { font-size: 1.25rem; }
+    .lesson-content h5 { font-size: 1.125rem; }
+    .lesson-content h6 { font-size: 1rem; }
+    
+    .lesson-content p {
+        margin-bottom: 1.2em;
+    }
+    
+    .lesson-content ul, .lesson-content ol {
+        margin-bottom: 1.2em;
+        padding-left: 2em;
+    }
+    
+    .lesson-content li {
+        margin-bottom: 0.5em;
+    }
+    
+    .lesson-content a {
+        color: #667eea;
+        text-decoration: none;
+        border-bottom: 1px dotted #667eea;
+        transition: all 0.3s;
+    }
+    
+    .lesson-content a:hover {
+        color: #5a67d8;
+        border-bottom: 1px solid #5a67d8;
+    }
+    
+    .lesson-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1em 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .lesson-content blockquote {
+        border-left: 4px solid #667eea;
+        padding: 1em 1.5em;
+        margin: 1.5em 0;
+        background: #f7fafc;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+        color: #4a5568;
+    }
+    
+    .lesson-content code {
+        background: #edf2f7;
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+    
+    .lesson-content pre {
+        background: #2d3748;
+        color: #e2e8f0;
+        padding: 1em;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 1.5em 0;
+    }
+    
+    .lesson-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5em 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .lesson-content th {
+        background: #667eea;
+        color: white;
+        padding: 0.75em;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .lesson-content td {
+        padding: 0.75em;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .lesson-content tr:nth-child(even) {
+        background: #f7fafc;
+    }
+    
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 */
+        height: 0;
+        overflow: hidden;
+        margin: 2em 0;
+        border-radius: 12px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    }
+    
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 12px;
+    }
+    
+    .video-platform-badge {
+        display: inline-block;
+        padding: 0.25em 0.75em;
+        background: #f0f0f0;
+        border-radius: 4px;
+        font-size: 0.875em;
+        margin-left: 1em;
+        vertical-align: middle;
+    }
+    
+    .youtube-badge {
+        background: #ff0000;
+        color: white;
+    }
+    
+    .rutube-badge {
+        background: #ff3366;
+        color: white;
+    }
+    
+    .html-tools {
+        background: #ebf8ff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #4299e1;
+    }
+    
+    .html-tools h4 {
+        margin-top: 0;
+        color: #2c5282;
+    }
+    
+    .html-examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .html-example {
+        background: white;
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid #cbd5e0;
+    }
+    
+    .html-example code {
+        display: block;
+        margin: 0.5rem 0;
+        font-size: 0.875em;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
@@ -26,6 +213,14 @@
                     <span style="background: #e6fffa; color: #234e52; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
                         Тема: {{ lesson.theme.title }}
                     </span>
+                    
+                    {% if lesson.video_url %}
+                        {% if 'youtube' in lesson.video_url %}
+                            <span class="video-platform-badge youtube-badge">YouTube</span>
+                        {% elif 'rutube' in lesson.video_url %}
+                            <span class="video-platform-badge rutube-badge">Rutube</span>
+                        {% endif %}
+                    {% endif %}
                     
                     {% if is_completed %}
                         <span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
@@ -56,27 +251,30 @@
     <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
         <!-- Основной контент -->
         <div>
-            <!-- Содержание урока -->
+            <!-- Содержание урока с HTML -->
             <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
                 <h2 style="color: #2d3748; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
                     📖 Содержание урока
                 </h2>
                 
-                <div style="color: #4a5568; line-height: 1.7; font-size: 1.1rem;">
-                    {{ lesson.content|linebreaks }}
+                <div class="lesson-content">
+                    {{ lesson.safe_content }}
                 </div>
                 
-                {% if lesson.video_url %}
+                {% if lesson.get_video_embed_code %}
                     <div style="margin-top: 2rem;">
-                        <h3 style="color: #2d3748; margin-bottom: 1rem;">🎥 Видеоурок</h3>
-                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px;">
-                            <iframe src="{{ lesson.video_url }}" 
-                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
-                                    allowfullscreen>
-                            </iframe>
-                        </div>
+                        <h3 style="color: #2d3748; margin-bottom: 1rem;">
+                            {% if 'youtube' in lesson.video_url %}🎥 Видео с YouTube
+                            {% elif 'rutube' in lesson.video_url %}🎥 Видео с Rutube
+                            {% else %}🎥 Видеоурок{% endif %}
+                        </h3>
+                        {{ lesson.get_video_embed_code|safe }}
                         <p style="color: #718096; font-size: 0.9rem; margin-top: 0.5rem;">
-                            Для просмотра видео рекомендуется использовать современный браузер
+                            {% if 'youtube' in lesson.video_url %}
+                                Видео размещено на YouTube
+                            {% elif 'rutube' in lesson.video_url %}
+                                Видео размещено на Rutube
+                            {% endif %}
                         </p>
                     </div>
                 {% endif %}
@@ -112,12 +310,12 @@
                                             {{ task.title }}
                                         </h3>
                                         
-                                        <p style="color: #4a5568; margin-bottom: 1rem;">
-                                            {{ task.description }}
-                                        </p>
+                                        <div class="lesson-content">
+                                            {{ task.description|linebreaks }}
+                                        </div>
                                         
                                         {% if task.file %}
-                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
                                                 <span style="color: #718096; font-size: 0.9rem;">
                                                     📎 Прикрепленный файл:
                                                 </span>
@@ -151,7 +349,7 @@
                 {% endif %}
             </div>
         </div>
-
+        
         <!-- Боковая панель -->
         <div>
             <!-- Информация об уроке -->
@@ -174,6 +372,21 @@
                         <span style="color: #2d3748; font-weight: 500;">{{ lesson.created_at|date:"d.m.Y" }}</span>
                     </div>
                     
+                    {% if lesson.video_url %}
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #718096;">Видео:</span>
+                        <span style="color: #2d3748; font-weight: 500;">
+                            {% if 'youtube' in lesson.video_url %}
+                                <span style="color: #ff0000;">YouTube</span>
+                            {% elif 'rutube' in lesson.video_url %}
+                                <span style="color: #ff3366;">Rutube</span>
+                            {% else %}
+                                Есть
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
                     {% if user.is_authenticated %}
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: #718096;">Статус:</span>
@@ -185,52 +398,13 @@
                 </div>
             </div>
 
-            <!-- Навигация по урокам -->
-            {% if lesson.theme.lessons.count > 1 %}
-                <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                    <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">📚 Другие уроки темы</h3>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        {% for other_lesson in lesson.theme.lessons.all|slice:":5" %}
-                            {% if other_lesson.id != lesson.id %}
-                                <a href="{% url 'lesson_detail' other_lesson.id %}" 
-                                   style="display: block; padding: 0.75rem; background: {% if other_lesson.order < lesson.order %}#f7fafc{% else %}#fffaf0{% endif %}; color: #4a5568; text-decoration: none; border-radius: 5px; font-size: 0.9rem; border-left: 3px solid {% if other_lesson.order < lesson.order %}#48bb78{% else %}#ed8936{% endif %};">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span>{{ other_lesson.title|truncatechars:30 }}</span>
-                                        {% if other_lesson.order < lesson.order %}
-                                            <span style="color: #38a169; font-size: 0.8rem;">✓</span>
-                                        {% endif %}
-                                    </div>
-                                </a>
-                            {% else %}
-                                <div style="padding: 0.75rem; background: #ebf8ff; color: #2c5282; border-radius: 5px; font-size: 0.9rem; border-left: 3px solid #4299e1; font-weight: 500;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span>{{ other_lesson.title|truncatechars:30 }}</span>
-                                        <span style="color: #4299e1;">•</span>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                    
-                    {% if lesson.theme.lessons.count > 5 %}
-                        <div style="text-align: center; margin-top: 1rem;">
-                            <a href="{% url 'theme_detail' lesson.theme.pk %}" 
-                               style="color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-                                Все уроки темы →
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-
             <!-- Быстрые действия -->
-            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem;">
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
                 <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">⚡ Быстрые действия</h3>
                 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     <a href="{% url 'theme_detail' lesson.theme.pk %}" 
-                       style="display: flex; align-items: center; padding: 0.75rem; background: #f7fafc; color: #4a5568; text-decoration: none; border-radius: 5px; font-size: 0.9rem; gap: 0.5rem;">
+                       style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #f7fafc; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500; transition: all 0.3s;">
                         <span>←</span>
                         Назад к теме
                     </a>
@@ -239,7 +413,7 @@
                         <form method="post" action="{% url 'mark_lesson_completed' lesson.id %}">
                             {% csrf_token %}
                             <button type="submit" 
-                                    style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: {% if is_completed %}#fed7d7{% else %}#c6f6d5{% endif %}; color: {% if is_completed %}#742a2a{% else %}#22543d{% endif %}; border: none; border-radius: 5px; font-size: 0.9rem; font-weight: 500; cursor: pointer; gap: 0.5rem;">
+                                    style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; background: {% if is_completed %}#fed7d7{% else %}#c6f6d5{% endif %}; color: {% if is_completed %}#742a2a{% else %}#22543d{% endif %}; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
                                 {% if is_completed %}
                                     <span>↶</span>
                                     Отменить выполнение
@@ -251,85 +425,79 @@
                         </form>
                     {% endif %}
                     
-                    <a href="#tasks" 
-                       style="display: flex; align-items: center; padding: 0.75rem; background: #fefcbf; color: #744210; text-decoration: none; border-radius: 5px; font-size: 0.9rem; gap: 0.5rem;">
-                        <span>📝</span>
-                        К заданиям
+                    {% if user.is_staff %}
+                        <a href="{% url 'add_task' lesson.id %}" 
+                           style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #fefcbf; color: #744210; text-decoration: none; border-radius: 5px; font-weight: 500; transition: all 0.3s;">
+                            <span>📝</span>
+                            Добавить задание
+                        </a>
+                        
+                        <a href="/admin/core/lesson/{{ lesson.id }}/change/" 
+                           style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #e6fffa; color: #234e52; text-decoration: none; border-radius: 5px; font-weight: 500; transition: all 0.3s;">
+                            <span>✏️</span>
+                            Редактировать урок
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Полезные ссылки -->
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem;">
+                <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">🔗 Полезные ресурсы</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <a href="https://rutube.ru/" 
+                       target="_blank"
+                       style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: linear-gradient(135deg, #ff3366, #ff6699); color: white; text-decoration: none; border-radius: 5px; font-weight: 500; transition: all 0.3s;">
+                        <span>▶️</span>
+                        Rutube - российская видеоплатформа
                     </a>
+
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Навигация вперед/назад -->
-    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
-        {% with prev_lesson=lesson.theme.lessons.filter.order|slice:":1" %}
-            {% if prev_lesson %}
-                <a href="{% url 'lesson_detail' prev_lesson.0.id %}" 
-                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                    ← Предыдущий урок
-                </a>
-            {% else %}
-                <a href="{% url 'theme_detail' lesson.theme.pk %}" 
-                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                    ← К теме
-                </a>
-            {% endif %}
-        {% endwith %}
-        
-        {% with next_lesson=lesson.theme.lessons.filter.order|slice:"1:2" %}
-            {% if next_lesson %}
-                <a href="{% url 'lesson_detail' next_lesson.0.id %}" 
-                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                    Следующий урок
-                    <span style="margin-left: 0.5rem;">→</span>
-                </a>
-            {% else %}
-                <a href="{% url 'theme_detail' lesson.theme.pk %}" 
-                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
-                    Завершить тему
-                    <span style="margin-left: 0.5rem;">✓</span>
-                </a>
-            {% endif %}
-        {% endwith %}
-    </div>
 </div>
-
-<style>
-    button:hover, a:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-        transition: all 0.2s;
-    }
-    
-    .task-card:hover {
-        transform: translateX(3px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Плавный скролл к заданиям
-        const taskLinks = document.querySelectorAll('a[href="#tasks"]');
-        taskLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const tasksSection = document.querySelector('#tasks') || 
-                                   document.querySelector('h2:contains("Задания")')?.closest('div') ||
-                                   document.querySelector('h2:contains("📝")')?.closest('div');
-                
-                if (tasksSection) {
-                    tasksSection.scrollIntoView({ behavior: 'smooth' });
+        // Добавляем target="_blank" для всех внешних ссылок в контенте урока
+        const lessonContent = document.querySelector('.lesson-content');
+        if (lessonContent) {
+            const links = lessonContent.querySelectorAll('a');
+            links.forEach(link => {
+                if (link.href && !link.href.includes(window.location.hostname)) {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    
+                    // Добавляем иконку внешней ссылки
+                    if (!link.querySelector('img')) {
+                        link.innerHTML += ' <span style="font-size:0.8em">↗</span>';
+                    }
                 }
             });
-        });
-        
-        // Подсветка текущего урока в навигации
-        const currentLessonItem = document.querySelector('.sidebar-lesson.current');
-        if (currentLessonItem) {
-            currentLessonItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            
+            // Делаем изображения адаптивными
+            const images = lessonContent.querySelectorAll('img');
+            images.forEach(img => {
+                if (!img.style.maxWidth) {
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                }
+            });
         }
+        
+        // Подсветка кода (простая реализация)
+        const codeBlocks = document.querySelectorAll('pre code');
+        codeBlocks.forEach(block => {
+            // Простая подсветка ключевых слов
+            let html = block.innerHTML;
+            html = html.replace(/\b(div|span|p|h1|h2|h3|h4|h5|h6|ul|ol|li|a|img|table|tr|td|th|strong|em)\b/g, 
+                '<span style="color:#63b3ed">$1</span>');
+            html = html.replace(/\b(class|id|href|src|alt|style|width|height)\b/g, 
+                '<span style="color:#68d391">$1</span>');
+            block.innerHTML = html;
+        });
     });
 </script>
 {% endblock %}

@@ -1,0 +1,959 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Исследование: Руководство по военной службе{% endblock %}
+
+{% block extra_css %}
+<style>
+    .research-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .research-header {
+        background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .research-header:before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-left: 5px solid;
+        transition: transform 0.3s;
+    }
+    
+    .section-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .section-title {
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .legal-section { border-left-color: #4299e1; }
+    .legal-section .section-title { border-bottom-color: #4299e1; color: #2c5282; }
+    
+    .medical-section { border-left-color: #48bb78; }
+    .medical-section .section-title { border-bottom-color: #48bb78; color: #22543d; }
+    
+    .draft-section { border-left-color: #ed8936; }
+    .draft-section .section-title { border-bottom-color: #ed8936; color: #9c4221; }
+    
+    .preparation-section { border-left-color: #9f7aea; }
+    .preparation-section .section-title { border-bottom-color: #9f7aea; color: #553c9a; }
+    
+    .alternative-section { border-left-color: #f56565; }
+    .alternative-section .section-title { border-bottom-color: #f56565; color: #742a2a; }
+    
+    .career-section { border-left-color: #0bc5ea; }
+    .career-section .section-title { border-bottom-color: #0bc5ea; color: #086f83; }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .info-card {
+        background: #f7fafc;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    .category-item {
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .category-a { background: #c6f6d5; color: #22543d; }
+    .category-b { background: #fefcbf; color: #744210; }
+    .category-c { background: #fed7d7; color: #742a2a; }
+    .category-d { background: #e9d8fd; color: #44337a; }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #cbd5e0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #667eea;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .comparison-table th {
+        background: #2d3748;
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .comparison-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .comparison-table tr:nth-child(even) {
+        background: #f7fafc;
+    }
+    
+    .comparison-table tr:hover {
+        background: #edf2f7;
+    }
+    
+    .important-note {
+        background: linear-gradient(135deg, #fefcbf 0%, #f6e05e 100%);
+        border-left: 4px solid #d69e2e;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    
+    .download-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .quick-link {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #2d3748;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .quick-link:hover {
+        border-color: #667eea;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .legal-document {
+        background: #ebf8ff;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-left: 4px solid #4299e1;
+    }
+    
+    @media (max-width: 768px) {
+        .section-card {
+            padding: 1.5rem;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .comparison-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="research-container">
+    <!-- Заголовок исследования -->
+    <div class="research-header">
+        <div style="position: relative; z-index: 1;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: bold;">
+                Руководство по военной службе в России
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 1.5rem;">
+                Информация о правах, обязанностях и возможностях для призывников и контрактников
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
+                    📋 Правовые основы
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
+                    🏥 Медицинское освидетельствование
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
+                    ⚖️ Призывная кампания
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые ссылки -->
+    <div class="quick-links">
+        <a href="#legal" class="quick-link">
+            <span style="font-size: 2rem;">⚖️</span>
+            <strong>Правовые основы</strong>
+        </a>
+        <a href="#medical" class="quick-link">
+            <span style="font-size: 2rem;">🏥</span>
+            <strong>Медосвидетельствование</strong>
+        </a>
+        <a href="#draft" class="quick-link">
+            <span style="font-size: 2rem;">📅</span>
+            <strong>Призывная кампания</strong>
+        </a>
+        <a href="#preparation" class="quick-link">
+            <span style="font-size: 2rem;">💪</span>
+            <strong>Подготовка</strong>
+        </a>
+        <a href="#alternative" class="quick-link">
+            <span style="font-size: 2rem;">🌱</span>
+            <strong>Альтернативная служба</strong>
+        </a>
+        <a href="#career" class="quick-link">
+            <span style="font-size: 2rem;">🎖️</span>
+            <strong>Военная карьера</strong>
+        </a>
+    </div>
+
+    <!-- Раздел 1: Правовые основы -->
+    <div id="legal" class="section-card legal-section">
+        <h2 class="section-title">
+            <span>⚖️</span> Правовые основы: Права и обязанности призывника
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3 style="color: #2c5282; margin-bottom: 0.75rem;">📋 Основные законы</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>Федеральный закон "О воинской обязанности и военной службе" №53-ФЗ</li>
+                    <li>Федеральный закон "О статусе военнослужащих" №76-ФЗ</li>
+                    <li>Положение о военно-врачебной экспертизе</li>
+                    <li>Устав внутренней службы ВС РФ</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #2c5282; margin-bottom: 0.75rem;">✅ Права призывника</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>На бесплатное медицинское освидетельствование</li>
+                    <li>На отсрочку от призыва по законным основаниям</li>
+                    <li>На обжалование решений призывной комиссии</li>
+                    <li>На юридическую помощь</li>
+                    <li>На сохранение рабочего места</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #2c5282; margin-bottom: 0.75rem;">📝 Обязанности призывника</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>Встать на воинский учет в 17 лет</li>
+                    <li>Явиться по повестке в военкомат</li>
+                    <li>Пройти медицинское освидетельствование</li>
+                    <li>Явиться для отправки к месту службы</li>
+                    <li>Сообщать об изменении семейного положения</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="legal-document">
+            <h4 style="color: #2c5282; margin-top: 0;">📄 Важные документы:</h4>
+            <p style="color: #4a5568; margin-bottom: 0.5rem;">
+                <strong>Удостоверение призывника</strong> - выдается при постановке на воинский учет
+            </p>
+            <p style="color: #4a5568; margin-bottom: 0.5rem;">
+                <strong>Военный билет</strong> - выдается после прохождения службы или признания негодным
+            </p>
+            <p style="color: #4a5568;">
+                <strong>Повестка</strong> - официальный документ о явке в военкомат
+            </p>
+        </div>
+        
+        <div class="important-note">
+            <strong>Важно знать:</strong> За уклонение от военной службы предусмотрена уголовная ответственность 
+            по статье 328 УК РФ (лишение свободы до 2 лет). Лучший способ - законное получение отсрочки или 
+            освобождения.
+        </div>
+    </div>
+
+    <!-- Раздел 2: Медицинское освидетельствование -->
+    <div id="medical" class="section-card medical-section">
+        <h2 class="section-title">
+            <span>🏥</span> Медицинское освидетельствование: Категории годности
+        </h2>
+        
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #22543d; margin-bottom: 1rem;">📋 Процедура прохождения медкомиссии</h3>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Шаг 1: Явка в военкомат</h4>
+                    <p style="color: #4a5568;">По повестке в указанное время и место</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Шаг 2: Предварительный осмотр</h4>
+                    <p style="color: #4a5568;">Измерение роста, веса, артериального давления</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Шаг 3: Посещение специалистов</h4>
+                    <p style="color: #4a5568;">
+                        Терапевт, хирург, невропатолог, психиатр, окулист, 
+                        отоларинголог, стоматолог
+                    </p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Шаг 4: Дополнительные обследования</h4>
+                    <p style="color: #4a5568;">При необходимости: анализы, УЗИ, рентген, ЭКГ</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <h4 style="color: #2d3748; margin-bottom: 0.5rem;">Шаг 5: Заключение комиссии</h4>
+                    <p style="color: #4a5568;">Определение категории годности</p>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="color: #22543d; margin-bottom: 1rem;">🏷️ Категории годности к военной службе</h3>
+        
+        <div class="category-grid">
+            <div class="category-item category-a">
+                <span style="font-size: 1.5rem;">🟢</span>
+                <div>
+                    <strong>Категория А</strong>
+                    <div style="font-size: 0.875rem;">Годен без ограничений</div>
+                </div>
+            </div>
+            
+            <div class="category-item category-b">
+                <span style="font-size: 1.5rem;">🟡</span>
+                <div>
+                    <strong>Категория Б</strong>
+                    <div style="font-size: 0.875rem;">Годен с незначительными ограничениями</div>
+                </div>
+            </div>
+            
+            <div class="category-item category-c">
+                <span style="font-size: 1.5rem;">🟠</span>
+                <div>
+                    <strong>Категория В</strong>
+                    <div style="font-size: 0.875rem;">Ограниченно годен (запас)</div>
+                </div>
+            </div>
+            
+            <div class="category-item category-d">
+                <span style="font-size: 1.5rem;">🔴</span>
+                <div>
+                    <strong>Категория Г</strong>
+                    <div style="font-size: 0.875rem;">Временно не годен</div>
+                </div>
+            </div>
+            
+            <div class="category-item" style="background: #fed7d7; color: #742a2a;">
+                <span style="font-size: 1.5rem;">⛔</span>
+                <div>
+                    <strong>Категория Д</strong>
+                    <div style="font-size: 0.875rem;">Не годен</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <h4 style="color: #22543d; margin-bottom: 0.75rem;">📝 Подкатегории для категории Б:</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: #f7fafc; padding: 1rem; border-radius: 6px;">
+                    <strong>Б-1</strong> - спецназ, морская пехота
+                </div>
+                <div style="background: #f7fafc; padding: 1rem; border-radius: 6px;">
+                    <strong>Б-2</strong> - танковые войска, подводники
+                </div>
+                <div style="background: #f7fafc; padding: 1rem; border-radius: 6px;">
+                    <strong>Б-3</strong> - водители, химические войска
+                </div>
+                <div style="background: #f7fafc; padding: 1rem; border-radius: 6px;">
+                    <strong>Б-4</strong> - охрана, связь, радиотехника
+                </div>
+            </div>
+        </div>
+        
+        <div class="important-note" style="margin-top: 1.5rem;">
+            <strong>Совет:</strong> Имеете хронические заболевания? Подготовьте все медицинские документы 
+            заранее. Медкомиссия в военкомате не ставит диагнозы, а лишь подтверждает существующие.
+        </div>
+    </div>
+
+    <!-- Раздел 3: Призывная кампания -->
+    <div id="draft" class="section-card draft-section">
+        <h2 class="section-title">
+            <span>📅</span> Призывная кампания: Сроки и порядок призыва
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3 style="color: #9c4221; margin-bottom: 0.75rem;">🌱 Весенний призыв</h3>
+                <p style="font-size: 2rem; color: #9c4221; font-weight: bold; margin: 0.5rem 0;">
+                    1 апреля - 15 июля
+                </p>
+                <p style="color: #4a5568;">
+                    Для граждан, проживающих в большинстве регионов России
+                </p>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #9c4221; margin-bottom: 0.75rem;">🍂 Осенний призыв</h3>
+                <p style="font-size: 2rem; color: #9c4221; font-weight: bold; margin: 0.5rem 0;">
+                    1 октября - 31 декабря
+                </p>
+                <p style="color: #4a5568;">
+                    Для граждан, проживающих в большинстве регионов России
+                </p>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #9c4221; margin-bottom: 0.75rem;">🏔️ Особые регионы</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>Крайний Север: 1 мая - 15 июля</li>
+                    <li>Сельская местность: 15 октября - 31 декабря</li>
+                    <li>Педагоги: 1 мая - 15 июля</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3 style="color: #9c4221; margin: 2rem 0 1rem;">📋 Порядок проведения призыва</h3>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Этап</th>
+                    <th>Сроки</th>
+                    <th>Что происходит</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1. Организационный</strong></td>
+                    <td>За 2 недели до призыва</td>
+                    <td>Формирование призывной комиссии, подготовка документов</td>
+                </tr>
+                <tr>
+                    <td><strong>2. Медицинский</strong></td>
+                    <td>Первые 2 недели</td>
+                    <td>Медосвидетельствование призывников, определение категорий</td>
+                </tr>
+                <tr>
+                    <td><strong>3. Заседание комиссии</strong></td>
+                    <td>Следующие 2 недели</td>
+                    <td>Принятие решений о призыве/отсрочке, распределение</td>
+                </tr>
+                <tr>
+                    <td><strong>4. Отправка</strong></td>
+                    <td>Последние 2 недели</td>
+                    <td>Организация отправки призывников к месту службы</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3 style="color: #9c4221; margin: 2rem 0 1rem;">📝 Документы для призывной комиссии</h3>
+        
+        <div style="background: #fffaf0; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ed8936;">
+            <ul style="color: #744210; padding-left: 1.5rem; margin: 0;">
+                <li>Паспорт гражданина РФ</li>
+                <li>Удостоверение призывника</li>
+                <li>Документ об образовании</li>
+                <li>Медицинские документы (при наличии заболеваний)</li>
+                <li>Документы о семейном положении</li>
+                <li>Документы, подтверждающие право на отсрочку</li>
+                <li>Фотографии 3×4 см (2 шт.)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Раздел 4: Подготовка -->
+    <div id="preparation" class="section-card preparation-section">
+        <h2 class="section-title">
+            <span>💪</span> Подготовка: Физическая, психологическая и теоретическая
+        </h2>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3 style="color: #553c9a; margin-bottom: 0.75rem;">🏃 Физическая подготовка</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li><strong>Бег 3 км:</strong> норматив - 14 мин 30 сек</li>
+                    <li><strong>Подтягивания:</strong> норматив - 12 раз</li>
+                    <li><strong>Отжимания:</strong> норматив - 50 раз</li>
+                    <li><strong>Пресс:</strong> норматив - 50 раз за 1 мин</li>
+                    <li><strong>Плавание:</strong> 100 м вольным стилем</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #553c9a; margin-bottom: 0.75rem;">🧠 Психологическая подготовка</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>Адаптация к коллективу</li>
+                    <li>Стрессоустойчивость</li>
+                    <li>Дисциплина и самоконтроль</li>
+                    <li>Конфликтология</li>
+                    <li>Тайм-менеджмент</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3 style="color: #553c9a; margin-bottom: 0.75rem;">📚 Теоретическая подготовка</h3>
+                <ul style="color: #4a5568; padding-left: 1.5rem;">
+                    <li>Устав ВС РФ</li>
+                    <li>Основы тактики</li>
+                    <li>Огневая подготовка</li>
+                    <li>Строевая подготовка</li>
+                    <li>Медицинская подготовка</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3 style="color: #553c9a; margin: 2rem 0 1rem;">🎯 30-дневная программа подготовки к службе</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+            <div style="background: #faf5ff; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="color: #553c9a; margin-top: 0;">Неделя 1-2: База</h4>
+                <ul style="color: #44337a; padding-left: 1.5rem;">
+                    <li>Ежедневная зарядка</li>
+                    <li>Бег 2-3 км</li>
+                    <li>Изучение уставов</li>
+                    <li>Работа с документами</li>
+                </ul>
+            </div>
+            
+            <div style="background: #faf5ff; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="color: #553c9a; margin-top: 0;">Неделя 3-4: Интенсив</h4>
+                <ul style="color: #44337a; padding-left: 1.5rem;">
+                    <li>Силовые тренировки</li>
+                    <li>Бег 5 км</li>
+                    <li>Тактическая подготовка</li>
+                    <li>Психологические тесты</li>
+                </ul>
+            </div>
+        </div>
+
+
+    <!-- Раздел 5: Альтернативная гражданская служба -->
+    <div id="alternative" class="section-card alternative-section">
+        <h2 class="section-title">
+            <span>🌱</span> Альтернативная гражданская служба (АГС)
+        </h2>
+        
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #742a2a; margin-bottom: 1rem;">⚖️ Условия для прохождения АГС</h3>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4 style="color: #742a2a; margin-top: 0;">Религиозные убеждения</h4>
+                    <p style="color: #4a5568;">
+                        Если военная служба противоречит вашим религиозным убеждениям
+                    </p>
+                </div>
+                
+                <div class="info-card">
+                    <h4 style="color: #742a2a; margin-top: 0;">Моральные принципы</h4>
+                    <p style="color: #4a5568;">
+                        Если несение военной службы противоречит вашим убеждениям
+                    </p>
+                </div>
+                
+                <div class="info-card">
+                    <h4 style="color: #742a2a; margin-top: 0;">Коренные малочисленные народы</h4>
+                    <p style="color: #4a5568;">
+                        Для представителей коренных малочисленных народов
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="color: #742a2a; margin-bottom: 1rem;">📋 Порядок прохождения АГС</h3>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">1. Подача заявления</h4>
+                <p style="color: #4a5568;">
+                    За 6 месяцев до начала призывной кампании в военкомат по месту жительства
+                </p>
+            </div>
+            
+            <div class="timeline-item">
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">2. Рассмотрение заявления</h4>
+                <p style="color: #4a5568;">
+                    Военкомат и прокуратура рассматривают заявление в течение 1 месяца
+                </p>
+            </div>
+            
+            <div class="timeline-item">
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">3. Медицинское освидетельствование</h4>
+                <p style="color: #4a5568;">
+                    Прохождение медкомиссии для определения категории годности
+                </p>
+            </div>
+            
+            <div class="timeline-item">
+                <h4 style="color: #2d3748; margin-bottom: 0.5rem;">4. Направление на АГС</h4>
+                <p style="color: #4a5568;">
+                    Получение предписания и направление к месту прохождения службы
+                </p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <h3 style="color: #742a2a; margin-bottom: 1rem;">📊 Сравнение: Военная служба vs АГС</h3>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Военная служба</th>
+                        <th>Альтернативная служба</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Срок</strong></td>
+                        <td>1 год</td>
+                        <td>18 месяцев (21 - для врачей)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Место</strong></td>
+                        <td>Воинские части РФ</td>
+                        <td>Госучреждения, организации</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Оплата</strong></td>
+                        <td>Денежное довольствие</td>
+                        <td>Заработная плата</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Отпуск</strong></td>
+                        <td>20 суток за год</td>
+                        <td>28 календарных дней</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Стаж</strong></td>
+                        <td>Военная служба</td>
+                        <td>Трудовой стаж</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="important-note">
+            <strong>Важно:</strong> Призыв на АГС осуществляется в те же сроки, что и обычный призыв. 
+            Отказ в праве на АГС можно обжаловать в суде в течение 3 месяцев.
+        </div>
+    </div>
+
+    <!-- Раздел 6: Военная карьера -->
+    <div id="career" class="section-card career-section">
+        <h2 class="section-title">
+            <span>🎖️</span> Военная карьера: Училища и контрактная служба
+        </h2>
+        
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #086f83; margin-bottom: 1rem;">🎓 Поступление в военные училища и вузы</h3>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4 style="color: #086f83; margin-top: 0;">📋 Требования</h4>
+                    <ul style="color: #4a5568; padding-left: 1.5rem;">
+                        <li>Возраст: 16-22 года (не служившие)</li>
+                        <li>Образование: среднее общее</li>
+                        <li>Категория годности: А или Б</li>
+                        <li>Физическая подготовка: нормативы</li>
+                        <li>Психологический отбор: успешное прохождение</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h4 style="color: #086f83; margin-top: 0;">📝 Документы</h4>
+                    <ul style="color: #4a5568; padding-left: 1.5rem;">
+                        <li>Заявление на имя начальника училища</li>
+                        <li>Автобиография</li>
+                        <li>Копия паспорта и свидетельства о рождении</li>
+                        <li>Аттестат об образовании</li>
+                        <li>Характеристика с места учебы/работы</li>
+                        <li>Медицинские документы</li>
+                        <li>Фото 4.5×6 см (6 шт.)</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h4 style="color: #086f83; margin-top: 0;">🏫 Популярные вузы</h4>
+                    <ul style="color: #4a5568; padding-left: 1.5rem;">
+                        <li>Военная академия Генштаба</li>
+                        <li>Общевойсковая академия ВС РФ</li>
+                        <li>Военно-медицинская академия</li>
+                        <li>Военно-космическая академия</li>
+                        <li>Военный университет Минобороны</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #086f83; margin-bottom: 1rem;">💼 Контрактная служба</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+                <div style="background: #e6fffa; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: #234e52; margin-top: 0;">💰 Финансовые условия</h4>
+                    <ul style="color: #234e52; padding-left: 1.5rem;">
+                        <li>Оклад: от 204,000 рублей</li>
+                        <li>Надбавки: за выслугу, квалификацию</li>
+                        <li>Премии: за отличную службу</li>
+                        <li>Льготы: ЖКХ, транспорт, медицина</li>
+                        <li>Жилье: служебное или субсидия</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #ebf8ff; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: #2c5282; margin-top: 0;">📈 Карьерный рост</h4>
+                    <ul style="color: #2c5282; padding-left: 1.5rem;">
+                        <li>Повышение в звании</li>
+                        <li>Курсы переподготовки</li>
+                        <li>Специализированное обучение</li>
+                        <li>Командные должности</li>
+                        <li>Пенсия: после 20 лет службы</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="color: #086f83; margin-bottom: 1rem;">📊 Сравнение: Призыв vs Контракт</h3>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Критерий</th>
+                    <th>Призывная служба</th>
+                    <th>Контрактная служба</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Срок</strong></td>
+                    <td>1 год</td>
+                    <td>От 2 лет</td>
+                </tr>
+                <tr>
+                    <td><strong>Оплата</strong></td>
+                    <td>2,000-3,000 ₽/мес</td>
+                    <td>От 204,000 ₽/мес</td>
+                </tr>
+                <tr>
+                    <td><strong>Выбор места</strong></td>
+                    <td>По распределению</td>
+                    <td>По выбору (в рамках вакансий)</td>
+                </tr>
+                <tr>
+                    <td><strong>Специальность</strong></td>
+                    <td>Общая подготовка</td>
+                    <td>Профессиональная подготовка</td>
+                </tr>
+                <tr>
+                    <td><strong>Карьера</strong></td>
+                    <td>Нет</td>
+                    <td>Возможен рост</td>
+                </tr>
+                <tr>
+                    <td><strong>Льготы</strong></td>
+                    <td>Минимальные</td>
+                    <td>Полный социальный пакет</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Заключение -->
+    <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: #f7fafc; border-radius: 12px;">
+        <h2 style="color: #2d3748; margin-bottom: 1rem;">🎯 Ключевые выводы</h2>
+        <div style="max-width: 800px; margin: 0 auto;">
+            <p style="color: #4a5568; margin-bottom: 1rem; font-size: 1.1rem;">
+                Военная служба в России - это не только обязанность, но и возможность для личностного роста, 
+                профессионального развития и служения Отечеству. Правильная подготовка и знание своих прав 
+                помогут сделать этот период максимально полезным и комфортным.
+            </p>
+            <p style="color: #667eea; font-weight: 500; font-size: 1.2rem;">
+                Помните: информированный призывник - успешный защитник Родины!
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Плавная прокрутка к разделам
+        const quickLinks = document.querySelectorAll('.quick-link');
+        quickLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Подсветка активного раздела при прокрутке
+        const sections = document.querySelectorAll('.section-card');
+        const navLinks = document.querySelectorAll('.quick-link');
+        
+        function highlightCurrentSection() {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (scrollY >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                    link.style.borderColor = '#667eea';
+                    link.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.2)';
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', highlightCurrentSection);
+        
+        // Анимация появления элементов
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Применяем анимацию к карточкам
+        sections.forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'all 0.6s ease-out';
+            observer.observe(section);
+        });
+        
+        // Копирование важной информации
+        const importantNotes = document.querySelectorAll('.important-note');
+        importantNotes.forEach(note => {
+            note.style.cursor = 'pointer';
+            note.title = 'Кликните для копирования текста';
+            
+            note.addEventListener('click', function() {
+                const text = this.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '✅ Скопировано в буфер обмена!';
+                    this.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                    this.style.color = 'white';
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.style.background = 'linear-gradient(135deg, #fefcbf 0%, #f6e05e 100%)';
+                        this.style.color = '#744210';
+                    }, 2000);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
