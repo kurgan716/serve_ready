@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Lesson, Task, Theme
+from .models import UserProfile, Lesson, Task, Theme, Question, Answer
 from django.core.exceptions import ValidationError
 import re
 
@@ -91,3 +91,73 @@ class ThemeForm(forms.ModelForm):
     class Meta:
         model = Theme
         fields = ['title', 'description', 'image', 'order']
+
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['text', 'explanation', 'order']
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 3}),
+            'explanation': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class AnswerForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = ['text', 'is_correct', 'order']
+        widgets = {
+            'text': forms.TextInput(attrs={'placeholder': 'Текст ответа'}),
+        }
+
+
+AnswerFormSet = forms.inlineformset_factory(
+    Question,
+    Answer,
+    form=AnswerForm,
+    extra=4,  # 4 пустых поля для ответов
+    can_delete=True,
+    min_num=2,  # минимум 2 ответа
+    validate_min=True,
+)
+
+
+class InteractiveTaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'task_type', 'max_score']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'task_type': forms.Select(attrs={'class': 'task-type-select'}),
+        }
+
+
+class QuizForm(forms.Form):
+    """Форма для прохождения теста"""
+
+    def __init__(self, *args, **kwargs):
+        questions = kwargs.pop('questions', [])
+        super().__init__(*args, **kwargs)
+
+        for question in questions:
+            field_name = f'question_{question.id}'
+
+            if question.task.task_type == 'choice':
+                # Один правильный ответ
+                choices = [(answer.id, answer.text) for answer in question.answers.all()]
+                self.fields[field_name] = forms.ChoiceField(
+                    label=question.text,
+                    choices=choices,
+                    widget=forms.RadioSelect,
+                    required=True
+                )
+            elif question.task.task_type == 'multiple':
+                # Несколько правильных ответов
+                choices = [(answer.id, answer.text) for answer in question.answers.all()]
+                self.fields[field_name] = forms.MultipleChoiceField(
+                    label=question.text,
+                    choices=choices,
+                    widget=forms.CheckboxSelectMultiple,
+                    required=True
+                )

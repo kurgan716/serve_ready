@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -82,19 +84,177 @@ class Lesson(models.Model):
         """Возвращает безопасный HTML контент"""
         return mark_safe(self.content)
 
+
 class Task(models.Model):
+    TASK_TYPES = [
+        ('text', 'Текстовое задание'),
+        ('choice', 'Тест с выбором ответа'),
+        ('multiple', 'Тест с несколькими правильными ответами'),
+        ('file', 'Задание с файлом'),
+    ]
+
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='tasks', verbose_name="Урок")
     title = models.CharField(max_length=200, verbose_name="Название задания")
     description = models.TextField(verbose_name="Описание задания")
+    task_type = models.CharField(
+        max_length=20,
+        choices=TASK_TYPES,
+        default='text',
+        verbose_name="Тип задания"
+    )
+    max_score = models.IntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        verbose_name="Максимальный балл"
+    )
     file = models.FileField(upload_to='tasks/', blank=True, null=True, verbose_name="Файл задания")
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
-    
+
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('lesson_detail', kwargs={'lesson_id': self.lesson.id})
+
+
+class Question(models.Model):
+    """Вопрос для теста"""
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='questions',
+        verbose_name="Задание"
+    )
+    text = models.TextField(verbose_name="Текст вопроса")
+    order = models.IntegerField(default=0, verbose_name="Порядок")
+    explanation = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Объяснение ответа"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Вопрос"
+        verbose_name_plural = "Вопросы"
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"Вопрос: {self.text[:50]}..."
+
+
+class Answer(models.Model):
+    """Вариант ответа на вопрос"""
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name='answers',
+        verbose_name="Вопрос"
+    )
+    text = models.CharField(max_length=500, verbose_name="Текст ответа")
+    is_correct = models.BooleanField(default=False, verbose_name="Правильный ответ")
+    order = models.IntegerField(default=0, verbose_name="Порядок")
+
+    class Meta:
+        verbose_name = "Ответ"
+        verbose_name_plural = "Ответы"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.text[:50]}... ({'✓' if self.is_correct else '✗'})"
+
+
+class UserAnswer(models.Model):
+    """Ответ пользователя на вопрос"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь"
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        verbose_name="Вопрос"
+    )
+    selected_answers = models.ManyToManyField(
+        Answer,
+        verbose_name="Выбранные ответы"
+    )
+    is_correct = models.BooleanField(default=False, verbose_name="Правильно")
+    score = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Баллы"
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Ответ пользователя"
+        verbose_name_plural = "Ответы пользователей"
+        unique_together = ['user', 'question']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.question.text[:30]}..."
+
+
+class TaskAttempt(models.Model):
+    """Попытка выполнения задания пользователем"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь"
+    )
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        verbose_name="Задание"
+    )
+    score = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Баллы"
+    )
+    max_score = models.IntegerField(
+        default=10,
+        verbose_name="Максимальный балл"
+    )
+    percentage = models.FloatField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Процент выполнения"
+    )
+    is_completed = models.BooleanField(default=False, verbose_name="Завершено")
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Попытка выполнения задания"
+        verbose_name_plural = "Попытки выполнения заданий"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.task.title} ({self.percentage}%)"
+
+    def calculate_score(self):
+        """Рассчитать итоговый балл"""
+        user_answers = UserAnswer.objects.filter(
+            user=self.user,
+            question__task=self.task
+        )
+
+        if user_answers.exists():
+            correct_answers = user_answers.filter(is_correct=True).count()
+            total_questions = self.task.questions.count()
+
+            if total_questions > 0:
+                self.percentage = (correct_answers / total_questions) * 100
+                self.score = int((self.percentage / 100) * self.max_score)
+                self.is_completed = True
+                self.completed_at = timezone.now()
+                self.save()
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Пользователь")

@@ -1,0 +1,187 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Добавить интерактивное задание{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0;">
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                🎯
+            </div>
+            <div>
+                <h1 style="color: #2d3748; margin: 0; font-size: 1.75rem;">Новое интерактивное задание</h1>
+                <p style="color: #718096; margin: 0.25rem 0 0;">Урок: {{ lesson.title }}</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Тип задания -->
+                <div>
+                    <label style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Тип задания
+                    </label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+                        <div style="border: 2px solid {% if task_form.task_type.value == 'choice' %}#667eea{% else %}#e2e8f0{% endif %}; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;"
+                             onclick="document.querySelector('select[name=\"task_type\"]').value='choice'">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid {% if task_form.task_type.value == 'choice' %}#667eea{% else %}#cbd5e0{% endif %}; display: flex; align-items: center; justify-content: center;">
+                                    {% if task_form.task_type.value == 'choice' %}✓{% endif %}
+                                </div>
+                                <span style="font-weight: 500;">Один правильный ответ</span>
+                            </div>
+                            <p style="color: #718096; font-size: 0.875rem; margin: 0;">
+                                Тест с выбором одного правильного варианта
+                            </p>
+                        </div>
+                        
+                        <div style="border: 2px solid {% if task_form.task_type.value == 'multiple' %}#667eea{% else %}#e2e8f0{% endif %}; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;"
+                             onclick="document.querySelector('select[name=\"task_type\"]').value='multiple'">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid {% if task_form.task_type.value == 'multiple' %}#667eea{% else %}#cbd5e0{% endif %}; display: flex; align-items: center; justify-content: center;">
+                                    {% if task_form.task_type.value == 'multiple' %}✓{% endif %}
+                                </div>
+                                <span style="font-weight: 500;">Несколько правильных ответов</span>
+                            </div>
+                            <p style="color: #718096; font-size: 0.875rem; margin: 0;">
+                                Тест с выбором нескольких правильных вариантов
+                            </p>
+                        </div>
+                    </div>
+                    <select name="task_type" style="display: none;">
+                        {% for value, label in task_form.task_type.field.choices %}
+                            <option value="{{ value }}" {% if task_form.task_type.value == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Название задания -->
+                <div>
+                    <label for="{{ task_form.title.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Название задания
+                    </label>
+                    <input type="text" 
+                           name="{{ task_form.title.name }}" 
+                           id="{{ task_form.title.id_for_label }}" 
+                           value="{{ task_form.title.value|default:'' }}"
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                           placeholder="Введите название задания">
+                </div>
+
+                <!-- Описание -->
+                <div>
+                    <label for="{{ task_form.description.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Описание задания
+                    </label>
+                    <textarea name="{{ task_form.description.name }}" 
+                              id="{{ task_form.description.id_for_label }}" 
+                              rows="4"
+                              style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem; resize: vertical;"
+                              placeholder="Опишите задание">{{ task_form.description.value|default:'' }}</textarea>
+                </div>
+
+                <!-- Максимальный балл -->
+                <div>
+                    <label for="{{ task_form.max_score.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Максимальный балл
+                    </label>
+                    <input type="number" 
+                           name="{{ task_form.max_score.name }}" 
+                           id="{{ task_form.max_score.id_for_label }}" 
+                           value="{{ task_form.max_score.value|default:'10' }}"
+                           min="1"
+                           max="100"
+                           style="width: 100%; max-width: 200px; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;">
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <a href="{% url 'lesson_detail' lesson.id %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    ← Отмена
+                </a>
+                
+                <button type="submit" 
+                        style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                    Далее: Добавить вопросы →
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Информация о типах заданий -->
+    <div style="margin-top: 2rem; background: #f7fafc; border-radius: 10px; padding: 1.5rem;">
+        <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">📝 О типах заданий</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+                <h4 style="color: #4a5568; margin-bottom: 0.5rem;">Один правильный ответ</h4>
+                <ul style="color: #718096; font-size: 0.9rem; padding-left: 1.5rem; margin: 0;">
+                    <li>Подходит для проверки фактов</li>
+                    <li>Четкий результат (правильно/неправильно)</li>
+                    <li>Простота проверки</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: #4a5568; margin-bottom: 0.5rem;">Несколько правильных ответов</h4>
+                <ul style="color: #718096; font-size: 0.9rem; padding-left: 1.5rem; margin: 0;">
+                    <li>Проверяет понимание темы</li>
+                    <li>Развивает аналитическое мышление</li>
+                    <li>Более сложная проверка</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button:hover, a:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.2s;
+    }
+    
+    div[style*="cursor: pointer"]:hover {
+        border-color: #a0aec0 !important;
+        background: #f7fafc;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Подсветка выбранного типа задания
+        const taskTypeSelect = document.querySelector('select[name="task_type"]');
+        const typeCards = document.querySelectorAll('div[onclick*="task_type"]');
+        
+        function updateCardSelection() {
+            typeCards.forEach(card => {
+                const isSelected = card.getAttribute('onclick').includes(`'${taskTypeSelect.value}'`);
+                card.style.borderColor = isSelected ? '#667eea' : '#e2e8f0';
+                const checkmark = card.querySelector('div[style*="border-radius: 50%"]');
+                if (checkmark) {
+                    checkmark.innerHTML = isSelected ? '✓' : '';
+                    checkmark.style.borderColor = isSelected ? '#667eea' : '#cbd5e0';
+                }
+            });
+        }
+        
+        taskTypeSelect.addEventListener('change', updateCardSelection);
+        updateCardSelection();
+    });
+</script>
+{% endblock %}

@@ -348,6 +348,71 @@
                     </div>
                 {% endif %}
             </div>
+<!-- Тесты (если есть) -->
+{% if interactive_tasks %}
+<div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+    <h2 style="color: #2d3748; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🎯</span> Интерактивные тесты
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for task in interactive_tasks %}
+            {% with attempt=task.taskattempt_set.all|first %}
+            <div style="background: {% if attempt and attempt.is_completed %}#f0fff4{% else %}#f7fafc{% endif %};
+                        border-radius: 8px; padding: 1.5rem; border-left: 4px solid {% if attempt and attempt.is_completed %}#48bb78{% else %}#667eea{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem;">
+                    <h3 style="color: #2d3748; margin: 0; font-size: 1.1rem;">
+                        {{ task.title }}
+                        <span style="background: {% if task.task_type == 'choice' %}#ebf8ff{% else %}#faf5ff{% endif %};
+                                    color: {% if task.task_type == 'choice' %}#2c5282{% else %}#553c9a{% endif %};
+                                    padding: 0.25rem 0.5rem; border-radius: 15px; font-size: 0.75rem; margin-left: 0.5rem;">
+                            {{ task.get_task_type_display }}
+                        </span>
+                    </h3>
+
+                    {% if attempt and attempt.is_completed %}
+                        <span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
+                            ✅ {{ attempt.percentage|floatformat:0 }}%
+                        </span>
+                    {% endif %}
+                </div>
+
+                <p style="color: #718096; margin-bottom: 1rem; font-size: 0.9rem;">
+                    {{ task.description|truncatechars:100 }}
+                    <span style="color: #a0aec0; margin-left: 0.5rem;">
+                        {{ task.questions.count }} вопрос{{ task.questions.count|pluralize:",а,ов" }}
+                    </span>
+                </p>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <span style="color: #a0aec0; font-size: 0.875rem;">
+                        Макс. балл: {{ task.max_score }}
+                    </span>
+
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if attempt and attempt.is_completed %}
+                            <a href="{% url 'quiz_results' attempt.id %}"
+                               style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: #ebf8ff; color: #2c5282; text-decoration: none; border-radius: 5px; font-size: 0.9rem; font-weight: 500;">
+                                Результаты
+                            </a>
+                            <a href="{% url 'retake_quiz' task.id %}"
+                               style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: #fefcbf; color: #744210; text-decoration: none; border-radius: 5px; font-size: 0.9rem; font-weight: 500;">
+                                Перепройти
+                            </a>
+                        {% else %}
+                            <a href="{% url 'take_quiz' task.id %}"
+                               style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-size: 0.9rem; font-weight: 500;">
+                                Начать тест
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
         </div>
         
         <!-- Боковая панель -->
@@ -366,6 +431,7 @@
                         <span style="color: #718096;">Задания:</span>
                         <span style="color: #2d3748; font-weight: 500;">{{ tasks.count }}</span>
                     </div>
+
                     
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #718096;">Добавлен:</span>

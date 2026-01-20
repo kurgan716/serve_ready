@@ -1,0 +1,401 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Пройти тест: {{ task.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quiz-question {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .quiz-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .answer-option {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .answer-option:hover {
+        border-color: #cbd5e0;
+        background: #f7fafc;
+    }
+    
+    .answer-option.selected {
+        border-color: #667eea;
+        background: #ebf8ff;
+    }
+    
+    .answer-option.correct {
+        border-color: #48bb78;
+        background: #f0fff4;
+    }
+    
+    .answer-option.incorrect {
+        border-color: #f56565;
+        background: #fff5f5;
+    }
+    
+    .radio-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .radio-circle.selected {
+        border-color: #667eea;
+        background: #667eea;
+    }
+    
+    .radio-circle.selected:after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+    }
+    
+    .checkbox-square {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid #cbd5e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .checkbox-square.selected {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, #667eea, #764ba2);
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+    
+    .timer {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2d3748;
+        padding: 0.5rem 1rem;
+        background: white;
+        border-radius: 8px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Заголовок теста -->
+    <div class="quiz-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">{{ task.title }}</h1>
+                <p style="opacity: 0.9; margin: 0;">
+                    {{ questions.count }} вопрос{{ questions.count|pluralize:",а,ов" }} • 
+                    Максимальный балл: {{ task.max_score }}
+                </p>
+            </div>
+            
+            <div class="timer" id="timer">
+                00:00
+            </div>
+        </div>
+        
+        <!-- Прогресс -->
+        <div style="margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.9); font-size: 0.9rem;">
+                <span>Прогресс</span>
+                <span id="progress-counter">0/{{ questions.count }}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма теста -->
+    <form method="post" id="quiz-form">
+        {% csrf_token %}
+        
+        {% for question in questions %}
+            <div class="quiz-question" id="question-{{ question.id }}">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                    <h3 style="color: #2d3748; margin: 0; font-size: 1.1rem;">
+                        Вопрос {{ forloop.counter }} из {{ questions.count }}
+                    </h3>
+                    <span style="color: #718096; font-size: 0.9rem;">
+                        {% if task.task_type == 'choice' %}
+                            Выберите один ответ
+                        {% else %}
+                            Выберите один или несколько ответов
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <p style="color: #2d3748; font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                    {{ question.text }}
+                </p>
+                
+                <div class="answers-container">
+                    {% if task.task_type == 'choice' %}
+                        <!-- Один правильный ответ -->
+                        {% for answer in question.answers.all %}
+                            <div class="answer-option" onclick="selectSingleAnswer(this, {{ question.id }}, {{ answer.id }})">
+                                <div class="radio-circle" id="radio-{{ question.id }}-{{ answer.id }}"></div>
+                                <div style="flex-grow: 1;">
+                                    {{ answer.text }}
+                                </div>
+                                <input type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       value="{{ answer.id }}" 
+                                       style="display: none;"
+                                       id="input-{{ question.id }}-{{ answer.id }}">
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Несколько правильных ответов -->
+                        {% for answer in question.answers.all %}
+                            <div class="answer-option" onclick="selectMultipleAnswer(this, {{ question.id }}, {{ answer.id }})">
+                                <div class="checkbox-square" id="checkbox-{{ question.id }}-{{ answer.id }}"></div>
+                                <div style="flex-grow: 1;">
+                                    {{ answer.text }}
+                                </div>
+                                <input type="checkbox" 
+                                       name="question_{{ question.id }}" 
+                                       value="{{ answer.id }}" 
+                                       style="display: none;"
+                                       id="input-{{ question.id }}-{{ answer.id }}">
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        
+        <!-- Кнопки отправки -->
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+            <div>
+                <span style="color: #718096; font-size: 0.9rem;">
+                    Отвечено: <span id="answered-count">0</span>/{{ questions.count }}
+                </span>
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" 
+                        onclick="clearAllAnswers()"
+                        style="padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                    Очистить все
+                </button>
+                
+                <button type="submit" 
+                        id="submit-btn"
+                        style="padding: 0.75rem 2rem; background: #48bb78; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;"
+                        disabled>
+                    Завершить тест
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Предупреждение о незавершенных вопросах -->
+    <div id="incomplete-warning" 
+         style="display: none; background: #fffaf0; border-left: 4px solid #ed8936; padding: 1rem; margin-top: 1rem; border-radius: 0 8px 8px 0;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚠️</span>
+            <span>Не все вопросы отвечены. Вы уверены, что хотите завершить тест?</span>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+            <button onclick="submitQuiz()" 
+                    style="padding: 0.5rem 1rem; background: #ed8936; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Да, завершить
+            </button>
+            <button onclick="hideWarning()" 
+                    style="padding: 0.5rem 1rem; background: #e2e8f0; color: #4a5568; border: none; border-radius: 5px; cursor: pointer;">
+                Продолжить
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let startTime = new Date();
+    let answeredQuestions = new Set();
+    let selectedAnswers = {};
+    
+    // Таймер
+    function updateTimer() {
+        const now = new Date();
+        const diff = Math.floor((now - startTime) / 1000);
+        const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
+        const seconds = (diff % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+    }
+    
+    setInterval(updateTimer, 1000);
+    
+    // Выбор одного ответа
+    function selectSingleAnswer(element, questionId, answerId) {
+        const container = element.closest('.answers-container');
+        
+        // Снимаем выделение со всех вариантов
+        container.querySelectorAll('.answer-option').forEach(option => {
+            option.classList.remove('selected');
+            const radioId = option.querySelector('.radio-circle').id;
+            document.getElementById(radioId).classList.remove('selected');
+        });
+        
+        // Выделяем выбранный вариант
+        element.classList.add('selected');
+        document.getElementById(`radio-${questionId}-${answerId}`).classList.add('selected');
+        document.getElementById(`input-${questionId}-${answerId}`).checked = true;
+        
+        updateProgress(questionId);
+    }
+    
+    // Выбор нескольких ответов
+    function selectMultipleAnswer(element, questionId, answerId) {
+        element.classList.toggle('selected');
+        const checkbox = document.getElementById(`checkbox-${questionId}-${answerId}`);
+        checkbox.classList.toggle('selected');
+        document.getElementById(`input-${questionId}-${answerId}`).checked = 
+            !document.getElementById(`input-${questionId}-${answerId}`).checked;
+        
+        updateProgress(questionId);
+    }
+    
+    // Обновление прогресса
+    function updateProgress(questionId) {
+        answeredQuestions.add(questionId);
+        
+        const answeredCount = answeredQuestions.size;
+        const totalQuestions = {{ questions.count }};
+        const progress = (answeredCount / totalQuestions) * 100;
+        
+        document.getElementById('progress-counter').textContent = 
+            `${answeredCount}/${totalQuestions}`;
+        document.getElementById('progress-fill').style.width = `${progress}%`;
+        document.getElementById('answered-count').textContent = answeredCount;
+        
+        // Активируем кнопку отправки
+        document.getElementById('submit-btn').disabled = answeredCount === 0;
+    }
+    
+    // Очистка всех ответов
+    function clearAllAnswers() {
+        if (confirm('Очистить все ответы? Это действие нельзя отменить.')) {
+            // Снимаем выделение
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.radio-circle, .checkbox-square').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Сбрасываем input
+            document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Сбрасываем прогресс
+            answeredQuestions.clear();
+            selectedAnswers = {};
+            
+            document.getElementById('progress-counter').textContent = 
+                `0/{{ questions.count }}`;
+            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('answered-count').textContent = '0';
+            document.getElementById('submit-btn').disabled = true;
+        }
+    }
+    
+    // Проверка перед отправкой
+    document.getElementById('quiz-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (answeredQuestions.size < {{ questions.count }}) {
+            document.getElementById('incomplete-warning').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        } else {
+            submitQuiz();
+        }
+    });
+    
+    // Фактическая отправка
+    function submitQuiz() {
+        // Отмечаем все неотвеченные вопросы как обязательные
+        const totalQuestions = {{ questions.count }};
+        const unansweredCount = totalQuestions - answeredQuestions.size;
+        
+        if (unansweredCount > 0) {
+            // Для незаполненных вопросов ставим пустые значения
+            {% for question in questions %}
+                if (!answeredQuestions.has({{ question.id }})) {
+                    const input = document.querySelector(`input[name="question_{{ question.id }}"]`);
+                    if (input && input.type === 'radio') {
+                        // Для радио создаем скрытый input с пустым значением
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = `question_{{ question.id }}`;
+                        hiddenInput.value = '';
+                        document.getElementById('quiz-form').appendChild(hiddenInput);
+                    }
+                }
+            {% endfor %}
+        }
+        
+        document.getElementById('quiz-form').submit();
+    }
+    
+    function hideWarning() {
+        document.getElementById('incomplete-warning').style.display = 'none';
+    }
+    
+    // Автосохранение каждые 30 секунд
+    setInterval(function() {
+        if (answeredQuestions.size > 0) {
+            // Здесь можно добавить автосохранение через AJAX
+            console.log('Автосохранение прогресса...');
+        }
+    }, 30000);
+</script>
+{% endblock %}

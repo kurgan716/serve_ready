@@ -1,14 +1,18 @@
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
+from django.db import transaction
 from django.utils import timezone
-
-from .models import Theme, Lesson, Task, UserProfile, ResearchArticle
-from .forms import RegisterForm, LoginForm, ProfileUpdateForm, LessonForm, TaskForm, ThemeForm
+from django.forms import formset_factory
+from .models import Theme, Lesson, Task, UserProfile, ResearchArticle, Question, Answer, UserAnswer, TaskAttempt
+from .forms import (
+    RegisterForm, LoginForm, ProfileUpdateForm, LessonForm,
+    TaskForm, ThemeForm, QuestionForm, AnswerFormSet,
+    InteractiveTaskForm, QuizForm
+)
 
 def index(request):
     themes = Theme.objects.all()[:4]
@@ -176,3 +180,247 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'Вы успешно вышли из системы.')
     return redirect('index')
+
+
+@login_required
+def add_interactive_task(request, lesson_id):
+    """Добавить интерактивное задание"""
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Только администраторы могут добавлять задания")
+
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+
+    if request.method == 'POST':
+        task_form = InteractiveTaskForm(request.POST, request.FILES)
+
+        if task_form.is_valid():
+            task = task_form.save(commit=False)
+            task.lesson = lesson
+            task.save()
+
+            # Перенаправляем на создание вопросов
+            messages.success(request, 'Задание создано! Теперь добавьте вопросы.')
+            return redirect('add_questions', task_id=task.id)
+    else:
+        task_form = InteractiveTaskForm()
+
+    return render(request, 'core/add_interactive_task.html', {
+        'task_form': task_form,
+        'lesson': lesson,
+    })
+
+
+@login_required
+def add_questions(request, task_id):
+    """Добавить вопросы к заданию"""
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Только администраторы могут добавлять вопросы")
+
+    task = get_object_or_404(Task, id=task_id)
+
+    if request.method == 'POST':
+        question_form = QuestionForm(request.POST)
+        answer_formset = AnswerFormSet(request.POST, instance=None)
+
+        if question_form.is_valid() and answer_formset.is_valid():
+            with transaction.atomic():
+                # Сохраняем вопрос
+                question = question_form.save(commit=False)
+                question.task = task
+                question.save()
+
+                # Сохраняем ответы
+                answer_formset.instance = question
+                answer_formset.save()
+
+                # Проверяем, что есть хотя бы один правильный ответ
+                correct_answers = question.answers.filter(is_correct=True).count()
+                if correct_answers == 0:
+                    messages.warning(request, 'Добавьте хотя бы один правильный ответ!')
+
+                # Очищаем форму для следующего вопроса
+                if 'add_another' in request.POST:
+                    messages.success(request, 'Вопрос добавлен! Добавьте следующий.')
+                    return redirect('add_questions', task_id=task.id)
+                else:
+                    messages.success(request, 'Все вопросы добавлены!')
+                    return redirect('lesson_detail', lesson_id=task.lesson.id)
+    else:
+        question_form = QuestionForm()
+        answer_formset = AnswerFormSet(instance=None)
+
+    return render(request, 'core/add_questions.html', {
+        'question_form': question_form,
+        'answer_formset': answer_formset,
+        'task': task,
+    })
+
+
+@login_required
+def edit_question(request, question_id):
+    """Редактировать вопрос"""
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Только администраторы могут редактировать вопросы")
+
+    question = get_object_or_404(Question, id=question_id)
+    task = question.task
+
+    if request.method == 'POST':
+        question_form = QuestionForm(request.POST, instance=question)
+        answer_formset = AnswerFormSet(request.POST, instance=question)
+
+        if question_form.is_valid() and answer_formset.is_valid():
+            with transaction.atomic():
+                question_form.save()
+                answer_formset.save()
+                messages.success(request, 'Вопрос обновлен!')
+                return redirect('manage_questions', task_id=task.id)
+    else:
+        question_form = QuestionForm(instance=question)
+        answer_formset = AnswerFormSet(instance=question)
+
+    return render(request, 'core/edit_question.html', {
+        'question_form': question_form,
+        'answer_formset': answer_formset,
+        'question': question,
+        'task': task,
+    })
+
+
+@login_required
+def manage_questions(request, task_id):
+    """Управление вопросами задания"""
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Только администраторы могут управлять вопросами")
+
+    task = get_object_or_404(Task, id=task_id)
+    questions = task.questions.all().order_by('order')
+
+    return render(request, 'core/manage_questions.html', {
+        'task': task,
+        'questions': questions,
+    })
+
+
+@login_required
+def take_quiz(request, task_id):
+    """Пройти тест"""
+    task = get_object_or_404(Task, id=task_id)
+    questions = task.questions.all().order_by('order')
+
+    if questions.count() == 0:
+        messages.warning(request, 'В этом задании еще нет вопросов.')
+        return redirect('lesson_detail', lesson_id=task.lesson.id)
+
+    # Создаем или получаем попытку
+    attempt, created = TaskAttempt.objects.get_or_create(
+        user=request.user,
+        task=task,
+        defaults={'max_score': task.max_score}
+    )
+
+    if attempt.is_completed:
+        messages.info(request, 'Вы уже прошли этот тест. Результаты ниже.')
+        return redirect('quiz_results', attempt_id=attempt.id)
+
+    if request.method == 'POST':
+        form = QuizForm(request.POST, questions=questions)
+
+        if form.is_valid():
+            with transaction.atomic():
+                total_correct = 0
+
+                # Сохраняем ответы пользователя
+                for question in questions:
+                    field_name = f'question_{question.id}'
+                    selected_ids = form.cleaned_data.get(field_name, [])
+
+                    if not isinstance(selected_ids, list):
+                        selected_ids = [selected_ids]
+
+                    selected_answers = Answer.objects.filter(id__in=selected_ids)
+
+                    # Создаем запись ответа пользователя
+                    user_answer, created = UserAnswer.objects.get_or_create(
+                        user=request.user,
+                        question=question
+                    )
+
+                    # Очищаем старые ответы
+                    user_answer.selected_answers.clear()
+
+                    # Добавляем выбранные ответы
+                    for answer in selected_answers:
+                        user_answer.selected_answers.add(answer)
+
+                    # Проверяем правильность
+                    if task.task_type == 'choice':
+                        # Для одного правильного ответа
+                        correct_answer = question.answers.filter(is_correct=True).first()
+                        user_answer.is_correct = (
+                                correct_answer and
+                                correct_answer.id in selected_ids
+                        )
+                    elif task.task_type == 'multiple':
+                        # Для нескольких правильных ответов
+                        correct_answers = set(question.answers.filter(is_correct=True).values_list('id', flat=True))
+                        selected_ids_set = set(map(int, selected_ids))
+                        user_answer.is_correct = (correct_answers == selected_ids_set)
+
+                    user_answer.score = task.max_score if user_answer.is_correct else 0
+                    user_answer.save()
+
+                    if user_answer.is_correct:
+                        total_correct += 1
+
+                # Обновляем попытку
+                attempt.calculate_score()
+                messages.success(request, f'Тест завершен! Ваш результат: {attempt.percentage:.1f}%')
+
+                return redirect('quiz_results', attempt_id=attempt.id)
+    else:
+        form = QuizForm(questions=questions)
+
+    return render(request, 'core/take_quiz.html', {
+        'task': task,
+        'questions': questions,
+        'form': form,
+        'attempt': attempt,
+    })
+
+
+@login_required
+def quiz_results(request, attempt_id):
+    """Результаты теста"""
+    attempt = get_object_or_404(TaskAttempt, id=attempt_id, user=request.user)
+    user_answers = UserAnswer.objects.filter(
+        user=request.user,
+        question__task=attempt.task
+    ).select_related('question')
+
+    return render(request, 'core/quiz_results.html', {
+        'attempt': attempt,
+        'user_answers': user_answers,
+        'task': attempt.task,
+    })
+
+
+@login_required
+def retake_quiz(request, task_id):
+    """Перепройти тест"""
+    task = get_object_or_404(Task, id=task_id)
+
+    # Удаляем старые ответы
+    UserAnswer.objects.filter(
+        user=request.user,
+        question__task=task
+    ).delete()
+
+    # Удаляем старую попытку
+    TaskAttempt.objects.filter(
+        user=request.user,
+        task=task
+    ).delete()
+
+    messages.info(request, 'Тест сброшен. Можете начать заново.')
+    return redirect('take_quiz', task_id=task.id)
