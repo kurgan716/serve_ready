@@ -1,0 +1,171 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Добавить урок{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <!-- Заголовок -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0;">
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                +
+            </div>
+            <div>
+                <h1 style="color: #2d3748; margin: 0; font-size: 1.75rem;">Добавить новый урок</h1>
+                <p style="color: #718096; margin: 0.25rem 0 0;">Тема: {{ theme.title }}</p>
+            </div>
+        </div>
+
+        <!-- Форма -->
+        <form method="post">
+            {% csrf_token %}
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Название урока -->
+                <div>
+                    <label for="{{ form.title.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Название урока
+                        <span style="color: #e53e3e;">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.title.name }}" 
+                           id="{{ form.title.id_for_label }}" 
+                           value="{{ form.title.value|default:'' }}"
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                           placeholder="Введите название урока">
+                    {% if form.title.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.title.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Содержание урока -->
+                <div>
+                    <label for="{{ form.content.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Содержание урока
+                        <span style="color: #e53e3e;">*</span>
+                    </label>
+                    <textarea name="{{ form.content.name }}" 
+                              id="{{ form.content.id_for_label }}" 
+                              required
+                              rows="12"
+                              style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;"
+                              placeholder="Введите содержание урока (поддерживается HTML)">{{ form.content.value|default:'' }}</textarea>
+                    {% if form.content.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.content.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                        Можно использовать HTML-теги для форматирования текста
+                    </div>
+                </div>
+
+                <!-- Видео URL -->
+                <div>
+                    <label for="{{ form.video_url.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Ссылка на видео (YouTube, Vimeo и др.)
+                    </label>
+                    <input type="url" 
+                           name="{{ form.video_url.name }}" 
+                           id="{{ form.video_url.id_for_label }}" 
+                           value="{{ form.video_url.value|default:'' }}"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                           placeholder="https://www.youtube.com/watch?v=...">
+                    {% if form.video_url.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.video_url.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                        Вставьте ссылку на видео для встраивания в урок
+                    </div>
+                </div>
+
+                <!-- Порядок -->
+                <div>
+                    <label for="{{ form.order.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Порядок отображения
+                    </label>
+                    <input type="number" 
+                           name="{{ form.order.name }}" 
+                           id="{{ form.order.id_for_label }}" 
+                           value="{{ form.order.value|default:'0' }}"
+                           min="0"
+                           style="width: 100%; max-width: 200px; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;">
+                    {% if form.order.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.order.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                        Чем меньше число, тем раньше урок будет отображаться в списке
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <a href="{% url 'theme_detail' theme.pk %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    ← Отмена
+                </a>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" 
+                            name="save_and_add_another"
+                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #ed8936; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                        Сохранить и добавить еще
+                    </button>
+                    
+                    <button type="submit" 
+                            name="save"
+                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #48bb78; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                        Сохранить урок
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Подсказки -->
+    <div style="margin-top: 2rem; background: #ebf8ff; border-radius: 10px; padding: 1.5rem;">
+        <h3 style="color: #2c5282; margin-bottom: 1rem; font-size: 1.1rem;">💡 Советы по созданию уроков</h3>
+        <ul style="color: #2c5282; padding-left: 1.5rem; margin: 0;">
+            <li style="margin-bottom: 0.5rem;">Используйте заголовки для структурирования материала</li>
+            <li style="margin-bottom: 0.5rem;">Добавляйте изображения через HTML-тег &lt;img&gt;</li>
+            <li style="margin-bottom: 0.5rem;">Разделяйте текст на абзацы для лучшей читаемости</li>
+            <li style="margin-bottom: 0.5rem;">Для видео используйте встраиваемые ссылки с YouTube/Vimeo</li>
+            <li>Укажите порядок урока для правильной последовательности изучения</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button:hover, a:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}

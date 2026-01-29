@@ -1,0 +1,234 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Добавить задание{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <!-- Заголовок -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0;">
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                📝
+            </div>
+            <div>
+                <h1 style="color: #2d3748; margin: 0; font-size: 1.75rem;">Добавить задание</h1>
+                <p style="color: #718096; margin: 0.25rem 0 0;">
+                    Урок: {{ lesson.title }}
+                </p>
+                <p style="color: #718096; margin: 0.25rem 0 0; font-size: 0.9rem;">
+                    Тема: {{ lesson.theme.title }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Форма -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Название задания -->
+                <div>
+                    <label for="{{ form.title.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Название задания
+                        <span style="color: #e53e3e;">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.title.name }}" 
+                           id="{{ form.title.id_for_label }}" 
+                           value="{{ form.title.value|default:'' }}"
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem;"
+                           placeholder="Введите название задания">
+                    {% if form.title.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.title.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Описание задания -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Описание задания
+                        <span style="color: #e53e3e;">*</span>
+                    </label>
+                    <textarea name="{{ form.description.name }}" 
+                              id="{{ form.description.id_for_label }}" 
+                              required
+                              rows="8"
+                              style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 1rem; font-family: inherit; resize: vertical;"
+                              placeholder="Опишите задание, что нужно сделать, какие требования и т.д.">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.description.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                        Подробно опишите задание, добавьте критерии оценки если необходимо
+                    </div>
+                </div>
+
+                <!-- Файл задания -->
+                <div>
+                    <label for="{{ form.file.id_for_label }}" 
+                           style="display: block; color: #2d3748; margin-bottom: 0.5rem; font-weight: 500; font-size: 1.1rem;">
+                        Прикрепленный файл
+                    </label>
+                    
+                    <div style="border: 2px dashed #cbd5e0; border-radius: 8px; padding: 2rem; text-align: center; background: #f7fafc; cursor: pointer;"
+                         onclick="document.getElementById('{{ form.file.id_for_label }}').click()">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📎</div>
+                        <p style="color: #718096; margin-bottom: 0.5rem;">
+                            Перетащите файл сюда или нажмите для выбора
+                        </p>
+                        <p style="color: #a0aec0; font-size: 0.875rem;">
+                            Максимальный размер: 10MB. Допустимые форматы: PDF, DOC, DOCX, TXT, JPG, PNG
+                        </p>
+                    </div>
+                    
+                    <input type="file" 
+                           name="{{ form.file.name }}" 
+                           id="{{ form.file.id_for_label }}"
+                           accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                           style="display: none;"
+                           onchange="updateFileName(this)">
+                    
+                    <div id="file-name" style="margin-top: 0.5rem; color: #718096; font-size: 0.875rem;">
+                        Файл не выбран
+                    </div>
+                    
+                    {% if form.file.errors %}
+                        <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.file.errors %}
+                                <p style="margin: 0.25rem 0;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                <a href="{% url 'lesson_detail' lesson.id %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    ← Отмена
+                </a>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" 
+                            name="save_and_add_another"
+                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #ed8936; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                        Сохранить и добавить еще
+                    </button>
+                    
+                    <button type="submit" 
+                            name="save"
+                            style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #48bb78; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                        Сохранить задание
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Примеры заданий -->
+    <div style="margin-top: 2rem;">
+        <div style="background: #fefcbf; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem;">
+            <h3 style="color: #744210; margin-bottom: 1rem; font-size: 1.1rem;">💡 Примеры типов заданий</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #744210; font-size: 0.9rem; margin-bottom: 0.5rem;">Тестовые вопросы</h4>
+                    <p style="color: #744210; font-size: 0.875rem; margin: 0;">Множественный выбор, верно/неверно</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #744210; font-size: 0.9rem; margin-bottom: 0.5rem;">Практические задачи</h4>
+                    <p style="color: #744210; font-size: 0.875rem; margin: 0;">Решение конкретных ситуаций</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #744210; font-size: 0.9rem; margin-bottom: 0.5rem;">Творческие работы</h4>
+                    <p style="color: #744210; font-size: 0.875rem; margin: 0;">Эссе, проекты, презентации</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Рекомендации -->
+        <div style="background: #c6f6d5; border-radius: 10px; padding: 1.5rem;">
+            <h3 style="color: #22543d; margin-bottom: 1rem; font-size: 1.1rem;">✅ Рекомендации по созданию заданий</h3>
+            <ul style="color: #22543d; padding-left: 1.5rem; margin: 0;">
+                <li style="margin-bottom: 0.5rem;">Формулируйте задания четко и однозначно</li>
+                <li style="margin-bottom: 0.5rem;">Указывайте сроки выполнения если необходимо</li>
+                <li style="margin-bottom: 0.5rem;">Добавляйте критерии оценки для прозрачности</li>
+                <li style="margin-bottom: 0.5rem;">Прикрепляйте примеры выполнения если возможно</li>
+                <li>Учитывайте уровень сложности урока</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateFileName(input) {
+        const fileNameDiv = document.getElementById('file-name');
+        if (input.files.length > 0) {
+            fileNameDiv.innerHTML = `Выбран файл: <strong>${input.files[0].name}</strong> (${(input.files[0].size / 1024 / 1024).toFixed(2)} MB)`;
+            fileNameDiv.style.color = '#22543d';
+        } else {
+            fileNameDiv.innerHTML = 'Файл не выбран';
+            fileNameDiv.style.color = '#718096';
+        }
+    }
+    
+    // Drag and drop для файла
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.querySelector('[onclick*="getElementById"]').parentElement;
+        const fileInput = document.getElementById('{{ form.file.id_for_label }}');
+        
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = '#ebf8ff';
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#cbd5e0';
+            this.style.background = '#f7fafc';
+        });
+        
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#cbd5e0';
+            this.style.background = '#f7fafc';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(fileInput);
+            }
+        });
+    });
+</script>
+
+<style>
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button:hover, a:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.2s;
+    }
+    
+    .drop-zone:hover {
+        border-color: #667eea !important;
+        background: #ebf8ff !important;
+    }
+</style>
+{% endblock %}

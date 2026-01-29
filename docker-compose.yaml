@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: serve_ready_postgres
+    environment:
+      POSTGRES_DB: serve_ready_db
+      POSTGRES_USER: serve_ready_user
+      POSTGRES_PASSWORD: StrongPassword123!
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U serve_ready_user -d serve_ready_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - serve_ready_network
+
+  web:
+    build: .
+    container_name: serve_ready_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn serve_ready.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=serve_ready_db
+      - DB_USER=serve_ready_user
+      - DB_PASSWORD=StrongPassword123!
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - serve_ready_network
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+networks:
+  serve_ready_network:
+    driver: bridge

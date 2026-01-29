@@ -1,0 +1,335 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Навигация -->
+    <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: #718096; font-size: 0.9rem; flex-wrap: wrap;">
+            <a href="{% url 'themes' %}" style="color: #667eea; text-decoration: none;">Темы</a>
+            <span>›</span>
+            <a href="{% url 'theme_detail' lesson.theme.pk %}" style="color: #667eea; text-decoration: none;">
+                {{ lesson.theme.title|truncatechars:30 }}
+            </a>
+            <span>›</span>
+            <span style="color: #4a5568; font-weight: 500;">{{ lesson.title|truncatechars:40 }}</span>
+        </div>
+    </div>
+
+    <!-- Заголовок урока -->
+    <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; margin-bottom: 2rem; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="flex-grow: 1;">
+                <h1 style="color: #2d3748; font-size: 2rem; margin-bottom: 0.5rem;">{{ lesson.title }}</h1>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span style="background: #e6fffa; color: #234e52; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
+                        Тема: {{ lesson.theme.title }}
+                    </span>
+                    
+                    {% if is_completed %}
+                        <span style="background: #c6f6d5; color: #22543d; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.875rem; font-weight: 500;">
+                            ✅ Пройден
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'mark_lesson_completed' lesson.id %}" style="flex-shrink: 0;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            style="display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; background: {% if is_completed %}#e53e3e{% else %}#48bb78{% endif %}; color: white; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; transition: background 0.3s;">
+                        {% if is_completed %}
+                            <span style="margin-right: 0.5rem;">↶</span>
+                            Пометить как непройденный
+                        {% else %}
+                            <span style="margin-right: 0.5rem;">✓</span>
+                            Пометить как пройденный
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+        <!-- Основной контент -->
+        <div>
+            <!-- Содержание урока -->
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+                <h2 style="color: #2d3748; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
+                    📖 Содержание урока
+                </h2>
+                
+                <div style="color: #4a5568; line-height: 1.7; font-size: 1.1rem;">
+                    {{ lesson.content|linebreaks }}
+                </div>
+                
+                {% if lesson.video_url %}
+                    <div style="margin-top: 2rem;">
+                        <h3 style="color: #2d3748; margin-bottom: 1rem;">🎥 Видеоурок</h3>
+                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px;">
+                            <iframe src="{{ lesson.video_url }}" 
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                        <p style="color: #718096; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Для просмотра видео рекомендуется использовать современный браузер
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Задания к уроку -->
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2 style="color: #2d3748; margin: 0;">📝 Задания</h2>
+                    
+                    {% if user.is_staff %}
+                        <a href="{% url 'add_task' lesson.id %}" 
+                           style="display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; background: #48bb78; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 0.9rem;">
+                            <span style="margin-right: 0.5rem;">+</span>
+                            Добавить задание
+                        </a>
+                    {% endif %}
+                </div>
+                
+                {% if tasks %}
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        {% for task in tasks %}
+                            <div style="background: #f7fafc; border-radius: 8px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; align-items: start; gap: 1rem;">
+                                    <div style="flex-shrink: 0;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                            {{ forloop.counter }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="flex-grow: 1;">
+                                        <h3 style="color: #2d3748; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                                            {{ task.title }}
+                                        </h3>
+                                        
+                                        <p style="color: #4a5568; margin-bottom: 1rem;">
+                                            {{ task.description }}
+                                        </p>
+                                        
+                                        {% if task.file %}
+                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <span style="color: #718096; font-size: 0.9rem;">
+                                                    📎 Прикрепленный файл:
+                                                </span>
+                                                <a href="{{ task.file.url }}" 
+                                                   style="color: #667eea; text-decoration: none; font-weight: 500; font-size: 0.9rem;"
+                                                   download>
+                                                    Скачать
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                        <p style="color: #718096;">Задания к этому уроку пока не добавлены</p>
+                        
+                        {% if user.is_staff %}
+                            <div style="margin-top: 1.5rem;">
+                                <a href="{% url 'add_task' lesson.id %}" 
+                                   style="display: inline-flex; align-items: center; padding: 0.5rem 1.25rem; background: #48bb78; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                                    <span style="margin-right: 0.5rem;">+</span>
+                                    Добавить первое задание
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div>
+            <!-- Информация об уроке -->
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">📊 Информация</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #718096;">Тема:</span>
+                        <span style="color: #2d3748; font-weight: 500;">{{ lesson.theme.title }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #718096;">Задания:</span>
+                        <span style="color: #2d3748; font-weight: 500;">{{ tasks.count }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #718096;">Добавлен:</span>
+                        <span style="color: #2d3748; font-weight: 500;">{{ lesson.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #718096;">Статус:</span>
+                            <span style="color: {% if is_completed %}#38a169{% else %}#e53e3e{% endif %}; font-weight: 500;">
+                                {% if is_completed %}Пройден{% else %}Не пройден{% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Навигация по урокам -->
+            {% if lesson.theme.lessons.count > 1 %}
+                <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">📚 Другие уроки темы</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% for other_lesson in lesson.theme.lessons.all|slice:":5" %}
+                            {% if other_lesson.id != lesson.id %}
+                                <a href="{% url 'lesson_detail' other_lesson.id %}" 
+                                   style="display: block; padding: 0.75rem; background: {% if other_lesson.order < lesson.order %}#f7fafc{% else %}#fffaf0{% endif %}; color: #4a5568; text-decoration: none; border-radius: 5px; font-size: 0.9rem; border-left: 3px solid {% if other_lesson.order < lesson.order %}#48bb78{% else %}#ed8936{% endif %};">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>{{ other_lesson.title|truncatechars:30 }}</span>
+                                        {% if other_lesson.order < lesson.order %}
+                                            <span style="color: #38a169; font-size: 0.8rem;">✓</span>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            {% else %}
+                                <div style="padding: 0.75rem; background: #ebf8ff; color: #2c5282; border-radius: 5px; font-size: 0.9rem; border-left: 3px solid #4299e1; font-weight: 500;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>{{ other_lesson.title|truncatechars:30 }}</span>
+                                        <span style="color: #4299e1;">•</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    {% if lesson.theme.lessons.count > 5 %}
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <a href="{% url 'theme_detail' lesson.theme.pk %}" 
+                               style="color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                                Все уроки темы →
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Быстрые действия -->
+            <div style="background: rgba(255,255,255,0.95); border-radius: 10px; padding: 1.5rem;">
+                <h3 style="color: #2d3748; margin-bottom: 1rem; font-size: 1.1rem;">⚡ Быстрые действия</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="{% url 'theme_detail' lesson.theme.pk %}" 
+                       style="display: flex; align-items: center; padding: 0.75rem; background: #f7fafc; color: #4a5568; text-decoration: none; border-radius: 5px; font-size: 0.9rem; gap: 0.5rem;">
+                        <span>←</span>
+                        Назад к теме
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'mark_lesson_completed' lesson.id %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: {% if is_completed %}#fed7d7{% else %}#c6f6d5{% endif %}; color: {% if is_completed %}#742a2a{% else %}#22543d{% endif %}; border: none; border-radius: 5px; font-size: 0.9rem; font-weight: 500; cursor: pointer; gap: 0.5rem;">
+                                {% if is_completed %}
+                                    <span>↶</span>
+                                    Отменить выполнение
+                                {% else %}
+                                    <span>✓</span>
+                                    Отметить как пройденный
+                                {% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    <a href="#tasks" 
+                       style="display: flex; align-items: center; padding: 0.75rem; background: #fefcbf; color: #744210; text-decoration: none; border-radius: 5px; font-size: 0.9rem; gap: 0.5rem;">
+                        <span>📝</span>
+                        К заданиям
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигация вперед/назад -->
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
+        {% with prev_lesson=lesson.theme.lessons.filter.order|slice:":1" %}
+            {% if prev_lesson %}
+                <a href="{% url 'lesson_detail' prev_lesson.0.id %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    ← Предыдущий урок
+                </a>
+            {% else %}
+                <a href="{% url 'theme_detail' lesson.theme.pk %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #e2e8f0; color: #4a5568; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    ← К теме
+                </a>
+            {% endif %}
+        {% endwith %}
+        
+        {% with next_lesson=lesson.theme.lessons.filter.order|slice:"1:2" %}
+            {% if next_lesson %}
+                <a href="{% url 'lesson_detail' next_lesson.0.id %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    Следующий урок
+                    <span style="margin-left: 0.5rem;">→</span>
+                </a>
+            {% else %}
+                <a href="{% url 'theme_detail' lesson.theme.pk %}" 
+                   style="display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">
+                    Завершить тему
+                    <span style="margin-left: 0.5rem;">✓</span>
+                </a>
+            {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+<style>
+    button:hover, a:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.2s;
+    }
+    
+    .task-card:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Плавный скролл к заданиям
+        const taskLinks = document.querySelectorAll('a[href="#tasks"]');
+        taskLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tasksSection = document.querySelector('#tasks') || 
+                                   document.querySelector('h2:contains("Задания")')?.closest('div') ||
+                                   document.querySelector('h2:contains("📝")')?.closest('div');
+                
+                if (tasksSection) {
+                    tasksSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Подсветка текущего урока в навигации
+        const currentLessonItem = document.querySelector('.sidebar-lesson.current');
+        if (currentLessonItem) {
+            currentLessonItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    });
+</script>
+{% endblock %}
